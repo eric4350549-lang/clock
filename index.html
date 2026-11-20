@@ -1,0 +1,442 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>CLOCK</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
+<meta name="theme-color" content="#000000">
+<style>
+/* ---------- base ---------- */
+html, body { margin: 0; padding: 0; width: 100%; height: 100%; background: #000; overflow: hidden; }
+body {
+  font-family: Roboto, "Droid Sans", "Helvetica Neue", Arial, sans-serif;
+  color: #E0F7FA;
+  -webkit-user-select: none; user-select: none;
+  -webkit-tap-highlight-color: rgba(0,0,0,0);
+  -webkit-text-size-adjust: 100%;
+}
+
+/* ---------- tablet: stage / panes ---------- */
+#stage { display: none; position: absolute; left: 0; top: 0; right: 0; bottom: 0; overflow: hidden; background: #000; }
+#stage.night { opacity: .35; }
+#stage.night.peeking { opacity: .7; }
+#stage.anim { -webkit-transition: opacity 1.2s ease; transition: opacity 1.2s ease; }
+
+.pane { position: absolute; top: 0; bottom: 0; overflow: hidden; }
+#clockPane { left: 0; width: 100%; }
+#notePane  { left: 100%; width: 33.3334%; }
+#stage.split #clockPane { width: 66.6666%; }
+#stage.split #notePane  { left: 66.6666%; }
+#stage.anim #clockPane { -webkit-transition: width .6s ease; transition: width .6s ease; }
+#stage.anim #notePane  { -webkit-transition: left .6s ease;  transition: left .6s ease; }
+#stage.anim #time, #stage.anim #date { -webkit-transition: font-size .6s ease; transition: font-size .6s ease; }
+
+/* frame + corner brackets */
+.frame { position: absolute; left: 16px; right: 16px; top: 16px; bottom: 16px; border: 1px solid #1A3A4A; }
+.cn { display: block; position: absolute; width: 22px; height: 22px; border: 0 solid #00F0FF; opacity: .7; }
+.tl { left: -1px;  top: -1px;    border-top-width: 2px;    border-left-width: 2px; }
+.tr { right: -1px; top: -1px;    border-top-width: 2px;    border-right-width: 2px; }
+.bl { left: -1px;  bottom: -1px; border-bottom-width: 2px; border-left-width: 2px; }
+.br { right: -1px; bottom: -1px; border-bottom-width: 2px; border-right-width: 2px; }
+.tag { position: absolute; background: #000; padding: 0 8px; font-size: 12px; line-height: 16px; letter-spacing: .2em; color: #2F6F80; white-space: nowrap; }
+.tagL { left: 34px;  top: -9px; }
+.tagR { right: 34px; bottom: -9px; }
+.tagR.bad { color: #B3563C; }
+
+/* quick-view button: same border / marker language as the task list */
+.peek {
+  display: none; position: absolute; top: 34px; right: 34px;
+  padding: 12px 18px 12px 16px; border: 1px solid #1A3A4A; background: #000;
+  color: #7FD8E0; font-size: 14px; line-height: 16px; letter-spacing: .22em; white-space: nowrap;
+  cursor: pointer; -webkit-tap-highlight-color: rgba(0,240,255,.15);
+}
+.peek .mk { display: inline-block; width: 7px; height: 7px; margin-right: 12px; border: 1px solid #00F0FF; background: rgba(0,240,255,.25); vertical-align: 1px; }
+.peek .cnt { margin-left: 12px; padding-left: 12px; border-left: 1px solid #1A3A4A; color: #00F0FF; }
+.peek.on, .peek:active { border-color: #00F0FF; background: rgba(0,240,255,.10); }
+
+/* clock */
+.center { display: table; width: 100%; height: 100%; }
+.cell { display: table-cell; vertical-align: middle; text-align: center; }
+#time {
+  font-size: 200px; line-height: 1; padding-bottom: .08em;
+  font-weight: 300; letter-spacing: .03em; white-space: nowrap; color: #00F0FF;
+  text-shadow: 0 0 22px rgba(0,240,255,.35);
+}
+#time .colon { opacity: .55; }
+.rule { width: 46%; height: 1px; margin: 0 auto; background: #1A3A4A; }
+#date { font-size: 30px; padding-top: .55em; font-weight: 300; letter-spacing: .22em; white-space: nowrap; color: #E0F7FA; opacity: .8; }
+
+/* note pane */
+#noteTitle { position: absolute; left: 44px; right: 44px; top: 44px; font-size: 28px; font-weight: 300; letter-spacing: .3em; color: #00F0FF; text-shadow: 0 0 14px rgba(0,240,255,.35); white-space: nowrap; }
+#noteRule  { position: absolute; left: 44px; right: 44px; top: 100px; height: 1px; background: #1A3A4A; }
+#noteBody  { position: absolute; left: 44px; right: 44px; top: 124px; bottom: 44px; overflow: hidden; font-size: 30px; color: #E0F7FA; }
+.item { position: relative; padding-left: 1.15em; margin-bottom: .75em; line-height: 1.35; word-wrap: break-word; }
+.item:before { content: ""; position: absolute; left: 0; top: .5em; width: .42em; height: .42em; border: 1px solid #00F0FF; background: rgba(0,240,255,.25); }
+
+/* ---------- phone: edit panel ---------- */
+html.edit, body.edit { height: auto; min-height: 100%; overflow: auto; -webkit-user-select: auto; user-select: auto; }
+#edit { display: none; max-width: 560px; margin: 0 auto; padding: 22px 16px 48px; -webkit-box-sizing: border-box; box-sizing: border-box; }
+.eh { color: #00F0FF; font-size: 22px; letter-spacing: .28em; font-weight: 300; text-shadow: 0 0 14px rgba(0,240,255,.35); }
+.es { color: #2F6F80; font-size: 12px; letter-spacing: .2em; margin: 6px 0 18px; padding-bottom: 12px; border-bottom: 1px solid #1A3A4A; }
+#noteInput {
+  display: block; width: 100%; height: 280px; margin: 0; padding: 14px;
+  -webkit-box-sizing: border-box; box-sizing: border-box;
+  background: #04141A; color: #E0F7FA; border: 1px solid #1A3A4A; border-radius: 0;
+  font-family: inherit; font-size: 18px; line-height: 1.5; resize: none; outline: none;
+  -webkit-appearance: none; appearance: none;
+}
+#noteInput:focus { border-color: #00F0FF; }
+.btn {
+  display: block; width: 100%; margin-top: 14px; padding: 0 12px; height: 56px;
+  -webkit-box-sizing: border-box; box-sizing: border-box;
+  font-family: inherit; font-size: 18px; letter-spacing: .08em; border-radius: 0; cursor: pointer;
+  -webkit-appearance: none; appearance: none;
+}
+#btnSend  { background: #00F0FF; color: #001418; border: 1px solid #00F0FF; font-weight: 700; }
+#btnClear { background: transparent; color: #7FD8E0; border: 1px solid #1A3A4A; }
+.btn[disabled] { opacity: .45; }
+#editStatus { min-height: 22px; margin-top: 16px; font-size: 14px; letter-spacing: .06em; color: #7FD8E0; }
+#editStatus.bad { color: #FF7A66; }
+.ehint { margin-top: 22px; font-size: 12px; line-height: 1.7; color: #2F6F80; }
+</style>
+</head>
+<body>
+
+<!-- ===== tablet display ===== -->
+<div id="stage">
+  <div id="clockPane" class="pane">
+    <div class="frame">
+      <i class="cn tl"></i><i class="cn tr"></i><i class="cn bl"></i><i class="cn br"></i>
+      <span class="tag tagL">// LOCAL TIME</span>
+      <span id="sync" class="tag tagR">SYNC // --</span>
+    </div>
+    <div class="center"><div class="cell">
+      <div id="time">00<span class="colon">:</span>00</div>
+      <div class="rule"></div>
+      <div id="date">0000.00.00 // ---</div>
+    </div></div>
+    <div id="peekBtn" class="peek"><i class="mk"></i><span id="peekLbl">TASKS</span><span id="peekCnt" class="cnt">0</span></div>
+  </div>
+  <div id="notePane" class="pane">
+    <div class="frame">
+      <i class="cn tl"></i><i class="cn tr"></i><i class="cn bl"></i><i class="cn br"></i>
+    </div>
+    <div id="noteTitle">// TASKS</div>
+    <div id="noteRule"></div>
+    <div id="noteBody"></div>
+  </div>
+</div>
+
+<!-- ===== phone editor (?edit=1) ===== -->
+<div id="edit">
+  <div class="eh">// REMOTE NOTE</div>
+  <div class="es">UPLINK &gt; ACER CLOCK</div>
+  <textarea id="noteInput" maxlength="1000" placeholder="每行一個待辦事項&#10;例如：&#10;14:00 開會&#10;買牛奶"></textarea>
+  <button id="btnSend" class="btn" type="button">更新至平板</button>
+  <button id="btnClear" class="btn" type="button">清空事項（恢復全螢幕時鐘）</button>
+  <div id="editStatus"></div>
+  <div class="ehint">平板規則：06:00–23:59 有內容時顯示「2/3 時鐘 + 1/3 待辦」；00:00–05:59 自動隱藏待辦並調暗。送出後約 15 秒內平板會更新。</div>
+</div>
+
+<script>
+/* ================= CONFIG（只需要改這裡）=================
+   TOPIC_ID：小寫英文 / 數字 / 底線 / 減號，最長 64 字元。
+   取一串別人猜不到的字，它就是這個頻道唯一的「密碼」。 */
+var TOPIC_ID    = "clk_645925dd2c85d1f01cec";
+var POLL_MS     = 15000;        /* 平板輪詢間隔（毫秒），請勿低於 10000 */
+var CLEAR_TOKEN = "CLEAR_NOTE"; /* 代表「清空」的特殊字串 */
+var NIGHT_FROM  = 0;            /* 夜間模式起（含）：00:00 */
+var NIGHT_TO    = 6;            /* 夜間模式迄（不含）：06:00 */
+var PEEK_MS     = 20000;        /* 夜間點「TASKS」按鈕後，臨時顯示待辦的秒數（毫秒） */
+/* ======================================================== */
+
+(function () {
+  var LS_NOTE  = 'acerclock.note';
+  var LS_DRAFT = 'acerclock.draft';
+  var DAYS = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'];
+
+  /* ---------- helpers ---------- */
+  function $(id) { return document.getElementById(id); }
+  function pad2(n) { return (n < 10 ? '0' : '') + n; }
+  function trim(s) { return String(s).replace(/^\s+|\s+$/g, ''); }
+  function lsGet(k) { try { return window.localStorage.getItem(k); } catch (e) { return null; } }
+  function lsSet(k, v) { try { window.localStorage.setItem(k, v); } catch (e) {} }
+  function viewW() { return window.innerWidth || document.documentElement.clientWidth || 1280; }
+  function viewH() { return window.innerHeight || document.documentElement.clientHeight || 800; }
+  function topicUrl(https) { return (https ? 'https://' : 'http://') + 'ntfy.sh/' + encodeURIComponent(TOPIC_ID); }
+
+  /* 傳統 XHR；cb(status, text)，status 為 0 代表網路錯誤或逾時 */
+  function request(method, url, body, cb) {
+    var xhr = null, done = false, timer = null;
+    function finish(status, text) {
+      if (done) { return; }
+      done = true;
+      if (timer) { clearTimeout(timer); }
+      if (xhr) { xhr.onreadystatechange = null; }
+      cb(status, text);
+    }
+    try {
+      xhr = new XMLHttpRequest();
+      xhr.open(method, url, true);
+      xhr.onreadystatechange = function () {
+        if (xhr.readyState === 4) { finish(xhr.status, xhr.responseText || ''); }
+      };
+      timer = setTimeout(function () {
+        try { xhr.abort(); } catch (e) {}
+        finish(0, '');
+      }, 12000);
+      xhr.send(body === null ? null : body);
+    } catch (e) {
+      finish(0, '');
+    }
+  }
+
+  /* ntfy 的 /json 回傳是「一行一個 JSON」；取時間最新的 message 事件 */
+  function parseLatest(text) {
+    var lines = String(text).split('\n'), latest = null, i, line, obj;
+    for (i = 0; i < lines.length; i++) {
+      line = trim(lines[i]);
+      if (line === '') { continue; }
+      try { obj = JSON.parse(line); } catch (e) { continue; }
+      if (obj && obj.event === 'message' && typeof obj.message === 'string') {
+        if (latest === null || (obj.time || 0) >= (latest.time || 0)) { latest = obj; }
+      }
+    }
+    return latest;
+  }
+
+  /* =====================================================
+     平板顯示模式
+     ===================================================== */
+  function initTablet() {
+    var stage = $('stage'), timeEl = $('time'), dateEl = $('date'), syncEl = $('sync');
+    var noteBody = $('noteBody'), noteTitle = $('noteTitle');
+    var note = trim(lsGet(LS_NOTE) || '');   /* 目前待辦（本機保存，ntfy 只快取 12 小時） */
+    var peekBtn = $('peekBtn'), peekLbl = $('peekLbl'), peekCnt = $('peekCnt');
+    var splitOn = null, nightOn = null, peekOn = null, syncOk = null;
+    var peek = false, peekTimer = null, noteCount = 0;   /* peek：夜間臨時查看待辦 */
+    var lastTime = '', lastDate = '';
+    var canToggle = (location.protocol !== 'https:');  /* http 頁面才可能在 http/https 之間切換 */
+    var useHttps = !canToggle;
+
+    stage.style.display = 'block';
+
+    function isNight(d) { var h = d.getHours(); return h >= NIGHT_FROM && h < NIGHT_TO; }
+
+    function renderClock() {
+      var d = new Date();
+      var hh = pad2(d.getHours()), mm = pad2(d.getMinutes());
+      var t = hh + ':' + mm;
+      var ds = d.getFullYear() + '.' + pad2(d.getMonth() + 1) + '.' + pad2(d.getDate()) + ' // ' + DAYS[d.getDay()];
+      if (t !== lastTime) { lastTime = t; timeEl.innerHTML = hh + '<span class="colon">:</span>' + mm; }
+      if (ds !== lastDate) { lastDate = ds; dateEl.textContent = ds; }
+    }
+
+    function fitNote() {
+      var nw = viewW() / 3;
+      var size = Math.min(40, Math.max(16, Math.floor(nw * 0.075)));
+      noteBody.style.fontSize = size + 'px';
+      while (size > 14 && noteBody.scrollHeight > noteBody.clientHeight + 1) {
+        size -= 1;
+        noteBody.style.fontSize = size + 'px';
+      }
+    }
+
+    function layout() {
+      var W = viewW(), H = viewH();
+      var paneW = splitOn ? W * 0.6666 : W;
+      var ts = Math.floor(Math.min(paneW * 0.265, H * 0.46));
+      timeEl.style.fontSize = ts + 'px';
+      dateEl.style.fontSize = Math.max(14, Math.floor(ts * 0.15)) + 'px';
+      noteTitle.style.fontSize = Math.max(14, Math.floor((W / 3) * 0.065)) + 'px';
+      fitNote();
+    }
+
+    function renderNote() {
+      var lines = note.split(/\r?\n/), i, t, div;
+      noteCount = 0;
+      while (noteBody.firstChild) { noteBody.removeChild(noteBody.firstChild); }
+      for (i = 0; i < lines.length; i++) {
+        t = trim(lines[i]);
+        if (t === '') { continue; }
+        div = document.createElement('div');
+        div.className = 'item';
+        div.appendChild(document.createTextNode(t));   /* 用 textNode，內容不會被當成 HTML */
+        noteBody.appendChild(div);
+        noteCount += 1;
+      }
+      peekCnt.textContent = noteCount;
+      fitNote();
+    }
+
+    function stopPeek() {
+      peek = false;
+      if (peekTimer) { clearTimeout(peekTimer); peekTimer = null; }
+    }
+
+    /* 依「現在時間 + 有無待辦 + 是否臨時查看」決定畫面狀態 */
+    function applyMode() {
+      var night = isNight(new Date());
+      var split, showBtn;
+      if (peek && (!night || note === '')) { stopPeek(); }   /* 天亮或待辦被清空 → 結束臨時查看 */
+      split = (note !== '' && (!night || peek));
+      showBtn = (night && note !== '');
+      if (night !== nightOn) {
+        nightOn = night;
+        if (night) { stage.classList.add('night'); } else { stage.classList.remove('night'); }
+      }
+      if (peek !== peekOn) {
+        peekOn = peek;
+        if (peek) { stage.classList.add('peeking'); } else { stage.classList.remove('peeking'); }
+      }
+      if (split !== splitOn) {
+        splitOn = split;
+        if (split) { stage.classList.add('split'); } else { stage.classList.remove('split'); }
+        layout();
+      }
+      peekBtn.style.display = showBtn ? 'block' : 'none';
+      peekBtn.className = 'peek' + (peek ? ' on' : '');
+      peekLbl.textContent = peek ? 'CLOSE' : 'TASKS';
+      peekCnt.style.display = peek ? 'none' : 'inline';
+    }
+
+    /* 夜間快速查看：點一下顯示待辦並提高亮度，PEEK_MS 後自動收回；再點一次可提早收回 */
+    function togglePeek() {
+      if (peek) {
+        stopPeek();
+      } else if (note !== '') {
+        peek = true;
+        peekTimer = setTimeout(function () { peekTimer = null; peek = false; applyMode(); }, PEEK_MS);
+      }
+      applyMode();
+    }
+
+    function setNote(txt) {
+      if (txt === note) { return; }
+      note = txt;
+      lsSet(LS_NOTE, note);
+      renderNote();
+      applyMode();
+    }
+
+    function setSync(ok) {
+      if (ok === syncOk) { return; }
+      syncOk = ok;
+      syncEl.textContent = ok ? 'SYNC // OK' : 'SYNC // OFFLINE';
+      syncEl.className = 'tag tagR' + (ok ? '' : ' bad');
+    }
+
+    /* ---- 每分鐘整點更新時間（不用每秒計時器）---- */
+    function tick() {
+      var now = new Date();
+      renderClock();
+      applyMode();
+      setTimeout(tick, 60000 - (now.getSeconds() * 1000 + now.getMilliseconds()) + 200);
+    }
+
+    /* ---- 輪詢 ntfy：每 POLL_MS 一次，上一次結束後才排下一次 ---- */
+    function poll() {
+      var url = topicUrl(useHttps) + '/json?poll=1&since=all&_=' + new Date().getTime();
+      request('GET', url, null, function (status, text) {
+        var latest, msg;
+        if (status === 200) {
+          setSync(true);
+          latest = parseLatest(text);
+          /* 伺服器沒有訊息（超過 12 小時被清掉）時，保留本機已有的內容 */
+          if (latest) {
+            msg = trim(latest.message);
+            setNote(msg === CLEAR_TOKEN ? '' : msg);
+          }
+        } else {
+          setSync(false);
+          if (status === 0 && canToggle) { useHttps = !useHttps; }  /* 網路錯誤：下次換另一種協定試試 */
+        }
+        renderClock();
+        applyMode();
+        setTimeout(poll, POLL_MS);
+      });
+    }
+
+    peekBtn.onclick = togglePeek;
+    window.onresize = layout;
+    if (window.addEventListener) { window.addEventListener('orientationchange', layout, false); }
+
+    renderNote();
+    renderClock();
+    applyMode();
+    layout();
+    setTimeout(function () { stage.classList.add('anim'); }, 150);  /* 初始畫面不播動畫，之後才啟用 */
+    tick();
+    poll();
+  }
+
+  /* =====================================================
+     手機控制面板（?edit=1）
+     ===================================================== */
+  function initEdit() {
+    var ta = $('noteInput'), st = $('editStatus'), bSend = $('btnSend'), bClear = $('btnClear');
+    var dirty = false, busy = false;
+    var postUrl = 'https://ntfy.sh/' + encodeURIComponent(TOPIC_ID);
+    var draft = lsGet(LS_DRAFT);
+
+    document.documentElement.className = 'edit';
+    document.body.className = 'edit';
+    $('edit').style.display = 'block';
+    if (draft) { ta.value = draft; }
+
+    function say(msg, bad) { st.textContent = msg; st.className = bad ? 'bad' : ''; }
+    function hhmm() { var d = new Date(); return pad2(d.getHours()) + ':' + pad2(d.getMinutes()); }
+
+    function send(text, okMsg) {
+      if (busy) { return; }
+      busy = true;
+      bSend.disabled = true;
+      bClear.disabled = true;
+      say('SENDING...', false);
+      request('POST', postUrl, text, function (status) {
+        busy = false;
+        bSend.disabled = false;
+        bClear.disabled = false;
+        if (status === 200) {
+          say(okMsg + ' ' + hhmm() + '　平板約 15 秒內更新', false);
+        } else {
+          say('傳送失敗（' + (status ? 'HTTP ' + status : '無網路') + '），請稍後再試', true);
+        }
+      });
+    }
+
+    ta.oninput = function () { dirty = true; lsSet(LS_DRAFT, ta.value); };
+
+    bSend.onclick = function () {
+      var t = trim(ta.value);
+      if (t === '') { ta.value = ''; lsSet(LS_DRAFT, ''); send(CLEAR_TOKEN, '✓ 已清空'); }
+      else { send(t, '✓ 已更新'); }
+    };
+    bClear.onclick = function () {
+      ta.value = '';
+      lsSet(LS_DRAFT, '');
+      send(CLEAR_TOKEN, '✓ 已清空');
+    };
+
+    /* 開啟時載入雲端目前內容（若已過期則沿用本機草稿） */
+    request('GET', postUrl + '/json?poll=1&since=all&_=' + new Date().getTime(), null, function (status, text) {
+      var latest, m;
+      if (status !== 200 || dirty) { return; }
+      latest = parseLatest(text);
+      if (!latest) { return; }
+      m = trim(latest.message);
+      ta.value = (m === CLEAR_TOKEN) ? '' : m;
+      lsSet(LS_DRAFT, ta.value);
+      say('已載入雲端目前內容', false);
+    });
+  }
+
+  /* ---------- entry ---------- */
+  if (/[?&]edit=1(&|$)/.test(location.search)) { initEdit(); } else { initTablet(); }
+})();
+</script>
+</body>
+</html>
