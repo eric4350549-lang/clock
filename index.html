@@ -227,13 +227,23 @@ var PEEK_MS     = 20000;        /* 夜間點「TASKS」按鈕後，臨時顯示�
     var noteBody = $('noteBody'), noteTitle = $('noteTitle');
     var note = trim(lsGet(LS_NOTE) || '');   /* 目前待辦（本機保存，ntfy 只快取 12 小時） */
     var peekBtn = $('peekBtn'), peekLbl = $('peekLbl'), peekCnt = $('peekCnt');
-    var splitOn = null, nightOn = null, peekOn = null, syncOk = null;
+    var splitOn = null, nightOn = null, peekOn = null, syncKey = null;
     var peek = false, peekTimer = null, noteCount = 0;   /* peek：夜間臨時查看待辦 */
     var lastTime = '', lastDate = '';
-    var canToggle = (location.protocol !== 'https:');  /* http 頁面才可能在 http/https 之間切換 */
-    var useHttps = !canToggle;
+    var useHttps = (location.protocol === 'https:');  /* 先用頁面同樣的協定；失敗時會自動改試另一種 */
+    var quick = false;                                /* 剛換過協定：稍後立刻再試一次 */
 
     stage.style.display = 'block';
+
+    /* 萬一有執行錯誤，直接顯示在右下角，方便在平板上看出問題 */
+    window.onerror = function (msg) {
+      try {
+        syncKey = 'err';
+        syncEl.textContent = 'ERR // ' + String(msg).substring(0, 48);
+        syncEl.className = 'tag tagR bad';
+      } catch (e) {}
+      return false;
+    };
 
     function isNight(d) { var h = d.getHours(); return h >= NIGHT_FROM && h < NIGHT_TO; }
 
@@ -333,10 +343,11 @@ var PEEK_MS     = 20000;        /* 夜間點「TASKS」按鈕後，臨時顯示�
       applyMode();
     }
 
-    function setSync(ok) {
-      if (ok === syncOk) { return; }
-      syncOk = ok;
-      syncEl.textContent = ok ? 'SYNC // OK' : 'SYNC // OFFLINE';
+    function setSync(ok, why) {   /* why：失敗原因（NET 或 HTTP 狀態碼），顯示在右下角方便判斷 */
+      var key = ok ? 'ok' : 'x' + why;
+      if (key === syncKey) { return; }
+      syncKey = key;
+      syncEl.textContent = ok ? 'SYNC // OK' : 'SYNC // OFFLINE' + (why ? ' [' + why + ']' : '');
       syncEl.className = 'tag tagR' + (ok ? '' : ' bad');
     }
 
@@ -354,6 +365,7 @@ var PEEK_MS     = 20000;        /* 夜間點「TASKS」按鈕後，臨時顯示�
       request('GET', url, null, function (status, text) {
         var latest, msg;
         if (status === 200) {
+          quick = false;
           setSync(true);
           latest = parseLatest(text);
           /* 伺服器沒有訊息（超過 12 小時被清掉）時，保留本機已有的內容 */
@@ -362,12 +374,18 @@ var PEEK_MS     = 20000;        /* 夜間點「TASKS」按鈕後，臨時顯示�
             setNote(msg === CLEAR_TOKEN ? '' : msg);
           }
         } else {
-          setSync(false);
-          if (status === 0 && canToggle) { useHttps = !useHttps; }  /* 網路錯誤：下次換另一種協定試試 */
+          setSync(false, status === 0 ? 'NET' : 'HTTP ' + status);
+          if (status === 0) {
+            /* 連不上（舊裝置常見：不信任 ntfy.sh 的 https 憑證）→ 換另一種協定，1.5 秒後立刻再試一次 */
+            useHttps = !useHttps;
+            quick = !quick;
+          } else {
+            quick = false;
+          }
         }
         renderClock();
         applyMode();
-        setTimeout(poll, POLL_MS);
+        setTimeout(poll, quick ? 1500 : POLL_MS);
       });
     }
 
