@@ -128,7 +128,7 @@ html.edit, body.edit { height: auto; min-height: 100%; overflow: auto; -webkit-u
   <div id="clockPane" class="pane">
     <div class="frame">
       <i class="cn tl"></i><i class="cn tr"></i><i class="cn bl"></i><i class="cn br"></i>
-      <span class="tag tagL">// LOCAL TIME</span>
+      <span id="clkTag" class="tag tagL">// LOCAL TIME</span>
       <span id="sync" class="tag tagR">SYNC // --</span>
     </div>
     <div class="center"><div class="cell">
@@ -176,6 +176,9 @@ var WX_LON      = 120.97;
 var WX_NAME     = "HSINCHU N. DIST";   /* 天氣第二行顯示的地名（英文） */
 var WX_MS       = 1800000;      /* 天氣更新間隔（毫秒）：30 分鐘 */
 var WX_RETRY_MS = 120000;       /* 天氣取得失敗後重試間隔（毫秒）：2 分鐘 */
+var TZ_MIN         = 480;       /* 顯示時區：UTC+8（台北）。畫面一律以此計算，不受平板自己的時區設定影響 */
+var CLOCK_SYNC_MS  = 900000;    /* 向網站伺服器校正時間的間隔（毫秒）：15 分鐘 */
+var CLOCK_RETRY_MS = 60000;     /* 校正失敗後重試間隔（毫秒）：1 分鐘 */
 /* ======================================================== */
 
 (function () {
@@ -194,7 +197,7 @@ var WX_RETRY_MS = 120000;       /* 天氣取得失敗後重試間隔（毫秒）
   function viewH() { return window.innerHeight || document.documentElement.clientHeight || 800; }
   function topicUrl(https) { return (https ? 'https://' : 'http://') + 'ntfy.sh/' + encodeURIComponent(TOPIC_ID); }
 
-  /* 傳統 XHR；cb(status, text)，status 為 0 代表網路錯誤或逾時 */
+  /* 傳統 XHR；cb(status, text, xhr)，status 為 0 代表網路錯誤或逾時 */
   function request(method, url, body, cb) {
     var xhr = null, done = false, timer = null;
     function finish(status, text) {
@@ -202,7 +205,7 @@ var WX_RETRY_MS = 120000;       /* 天氣取得失敗後重試間隔（毫秒）
       done = true;
       if (timer) { clearTimeout(timer); }
       if (xhr) { xhr.onreadystatechange = null; }
-      cb(status, text);
+      cb(status, text, xhr);
     }
     try {
       xhr = new XMLHttpRequest();
@@ -219,6 +222,15 @@ var WX_RETRY_MS = 120000;       /* 天氣取得失敗後重試間隔（毫秒）
       finish(0, '');
     }
   }
+
+  /* =====================================================
+     時間：平板自己的時鐘常常不準（沒有自動校時、電池沒電後歸零、時區錯誤…）
+     → 以網站伺服器回應的 Date 標頭算出「平板時鐘誤差」，之後所有時間都用「校正後的時間 + 固定 UTC+8」
+     ===================================================== */
+  var clockOffset = 0;        /* 伺服器時間 − 平板時間（毫秒） */
+  var clockSynced = false;
+  function nowMs() { return new Date().getTime() + clockOffset; }
+  function tw() { return new Date(nowMs() + TZ_MIN * 60000); }   /* 以 getUTC* 讀取即為台北時間 */
 
   /* ntfy 的 /json 回傳是「一行一個 JSON」；取時間最新的 message 事件 */
   function parseLatest(text) {
@@ -268,7 +280,7 @@ var WX_RETRY_MS = 120000;       /* 天氣取得失敗後重試間隔（毫秒）
     return ['cloud', 'CLOUDY'];
   }
 
-  function dayKey(d) { return d.getFullYear() + '-' + pad2(d.getMonth() + 1) + '-' + pad2(d.getDate()); }
+  function dayKey(d) { return d.getUTCFullYear() + '-' + pad2(d.getUTCMonth() + 1) + '-' + pad2(d.getUTCDate()); }
   function num(v) { return (typeof v === 'number' && v === v) ? v : null; }
   function first(a) { return (a && a.length) ? a[0] : null; }
   function hmMin(s) {   /* "2026-11-23T06:11" → 371 分鐘 */
@@ -294,9 +306,9 @@ var WX_RETRY_MS = 120000;       /* 天氣取得失敗後重試間隔（毫秒）
              pop: num(first(d.precipitation_probability_max)), rise: hmMin(first(d.sunrise)), set: hmMin(first(d.sunset)) };
   }
   function isDayNow(w, now) {
-    var m = now.getHours() * 60 + now.getMinutes();
+    var m = now.getUTCHours() * 60 + now.getUTCMinutes();
     if (w.rise !== null && w.set !== null) { return m >= w.rise && m < w.set; }
-    return now.getHours() >= 6 && now.getHours() < 18;
+    return now.getUTCHours() >= 6 && now.getUTCHours() < 18;
   }
 
   /* =====================================================
@@ -315,6 +327,7 @@ var WX_RETRY_MS = 120000;       /* 天氣取得失敗後重試間隔（毫秒）
     var wxBox = $('wx'), wxIconEl = $('wxIcon'), wxMainEl = $('wxMain'), wxSubEl = $('wxSub');
     var wx = null, wxErr = '', wxSig = null, wxTimer = null, wxBusy = false, wxFetchDay = '';
     var wxHttps = (location.protocol === 'https:'), wxQuick = false;
+    var clkTag = $('clkTag'), clkTagText = '', clkTimer = null, clkAt = 0, tickTimer = null, shownMin = -1;
 
     stage.style.display = 'block';
 
@@ -334,13 +347,13 @@ var WX_RETRY_MS = 120000;       /* 天氣取得失敗後重試間隔（毫秒）
       return false;
     };
 
-    function isNight(d) { var h = d.getHours(); return h >= NIGHT_FROM && h < NIGHT_TO; }
+    function isNight(d) { var h = d.getUTCHours(); return h >= NIGHT_FROM && h < NIGHT_TO; }
 
     function renderClock() {
-      var d = new Date();
-      var hh = pad2(d.getHours()), mm = pad2(d.getMinutes());
+      var d = tw();
+      var hh = pad2(d.getUTCHours()), mm = pad2(d.getUTCMinutes());
       var t = hh + ':' + mm;
-      var ds = d.getFullYear() + '.' + pad2(d.getMonth() + 1) + '.' + pad2(d.getDate()) + ' // ' + DAYS[d.getDay()];
+      var ds = d.getUTCFullYear() + '.' + pad2(d.getUTCMonth() + 1) + '.' + pad2(d.getUTCDate()) + ' // ' + DAYS[d.getUTCDay()];
       if (t !== lastTime) { lastTime = t; timeEl.innerHTML = hh + '<span class="colon">:</span>' + mm; }
       if (ds !== lastDate) { lastDate = ds; dateEl.textContent = ds; }
     }
@@ -390,7 +403,7 @@ var WX_RETRY_MS = 120000;       /* 天氣取得失敗後重試間隔（毫秒）
 
     /* 依「現在時間 + 有無待辦 + 是否臨時查看」決定畫面狀態 */
     function applyMode() {
-      var night = isNight(new Date());
+      var night = isNight(tw());
       var split, showBtn;
       if (peek && (!night || note === '')) { stopPeek(); }   /* 天亮或待辦被清空 → 結束臨時查看 */
       split = (note !== '' && (!night || peek));
@@ -443,7 +456,7 @@ var WX_RETRY_MS = 120000;       /* 天氣取得失敗後重試間隔（毫秒）
 
     /* ---- 天氣：顯示在日期下方；有今天的資料就顯示，取不到才顯示 OFFLINE 與原因 ---- */
     function renderWx() {
-      var now = new Date(), main, sub, key, info, sig;
+      var now = tw(), main, sub, key, info, sig;
       if (wx && wx.day === dayKey(now)) {
         info = wxInfo(wx.code, isDayNow(wx, now));
         key = info[0];
@@ -477,12 +490,12 @@ var WX_RETRY_MS = 120000;       /* 天氣取得失敗後重試間隔（毫秒）
     function wxFetch() {
       if (wxTimer) { clearTimeout(wxTimer); wxTimer = null; }
       wxBusy = true;
-      wxFetchDay = dayKey(new Date());
+      wxFetchDay = dayKey(tw());
       request('GET', wxUrl(wxHttps), null, function (status, text) {
         var d = (status === 200) ? parseWx(text) : null;
         wxBusy = false;
         if (d) {
-          d.day = dayKey(new Date());
+          d.day = dayKey(tw());
           wx = d; wxErr = ''; wxQuick = false;
           lsSet(LS_WX, JSON.stringify(d));
           renderWx();
@@ -496,14 +509,78 @@ var WX_RETRY_MS = 120000;       /* 天氣取得失敗後重試間隔（毫秒）
       });
     }
 
-    /* ---- 每分鐘整點更新時間（不用每秒計時器）---- */
+    /* ---- 每分鐘整點更新時間；另有每秒的輕量看門狗，睡眠喚醒後最多 1 秒就會修正畫面 ---- */
     function tick() {
-      var now = new Date();
+      var now = tw();
+      if (tickTimer) { clearTimeout(tickTimer); tickTimer = null; }
+      shownMin = Math.floor(nowMs() / 60000);
       renderClock();
       applyMode();
       renderWx();
       if (!wxBusy && wxFetchDay !== dayKey(now)) { wxFetch(); }   /* 啟動時、以及跨日後立刻重新取得當日天氣 */
-      setTimeout(tick, 60000 - (now.getSeconds() * 1000 + now.getMilliseconds()) + 200);
+      tickTimer = setTimeout(tick, 60000 - (now.getUTCSeconds() * 1000 + now.getUTCMilliseconds()) + 200);
+    }
+
+    function watch() {
+      if (Math.floor(nowMs() / 60000) !== shownMin) { tick(); }
+      setTimeout(watch, 1000);
+    }
+
+    /* ---- 校時：左上角標籤顯示目前依據。TAIPEI TIME＝已用伺服器時間校正；LOCAL TIME＝尚未校正（暫用平板時鐘）---- */
+    function adjText(ms) {
+      var a = Math.abs(ms), sign = ms < 0 ? '-' : '+';
+      if (a < 5000) { return ''; }
+      if (a < 60000) { return ' // ADJ ' + sign + Math.round(a / 1000) + 'S'; }
+      if (a < 3600000) { return ' // ADJ ' + sign + Math.round(a / 60000) + 'M'; }
+      if (a < 172800000) { return ' // ADJ ' + sign + (Math.round(a / 360000) / 10) + 'H'; }
+      return ' // ADJ ' + sign + Math.round(a / 86400000) + 'D';
+    }
+
+    function setClockTag() {
+      var t = '// ' + (clockSynced ? 'TAIPEI TIME' : 'LOCAL TIME');
+      if (clockSynced) {
+        t += adjText(clockOffset);
+        if (new Date().getTimezoneOffset() !== -TZ_MIN) { t += ' // TZ FIX'; }   /* 平板時區不是 UTC+8，已改用台北時間 */
+      }
+      if (t !== clkTagText) { clkTagText = t; clkTag.textContent = t; }
+    }
+
+    /* 對自己的網站送 HEAD（同網域，可讀 Date 標頭）；Date 只到秒，所以加 0.5 秒取平均，並扣掉來回時間的一半 */
+    function syncClock() {
+      var t0 = new Date().getTime();
+      if (clkTimer) { clearTimeout(clkTimer); clkTimer = null; }
+      clkAt = t0;
+      request('HEAD', location.pathname + '?_t=' + t0, null, function (status, text, xhr) {
+        var t1 = new Date().getTime(), srv = NaN, off;
+        if (status === 200 && xhr && t1 - t0 < 4000) {
+          try { srv = Date.parse(xhr.getResponseHeader('Date')); } catch (e) { srv = NaN; }
+          if (srv === srv) {
+            off = (srv + 500) - Math.round((t0 + t1) / 2);
+            if (!clockSynced || Math.abs(off - clockOffset) > 1000) { clockOffset = off; }   /* 小幅抖動不理它，避免分鐘數跳來跳去 */
+            clockSynced = true;
+            setClockTag();
+            tick();
+            clkTimer = setTimeout(syncClock, CLOCK_SYNC_MS);
+            return;
+          }
+        }
+        clkTimer = setTimeout(syncClock, CLOCK_RETRY_MS);
+      });
+    }
+
+    /* 平板睡眠、螢幕關閉後回來：立刻重畫，並在 30 秒內沒校過時就重新校時 */
+    function onWake() {
+      tick();
+      if (new Date().getTime() - clkAt > 30000) { syncClock(); }
+    }
+    if (document.addEventListener) {
+      document.addEventListener('visibilitychange', onWake, false);
+      document.addEventListener('webkitvisibilitychange', onWake, false);
+    }
+    if (window.addEventListener) {
+      window.addEventListener('focus', onWake, false);
+      window.addEventListener('pageshow', onWake, false);
+      window.addEventListener('online', onWake, false);
     }
 
     /* ---- 輪詢 ntfy：每 POLL_MS 一次，上一次結束後才排下一次 ---- */
@@ -578,7 +655,10 @@ var WX_RETRY_MS = 120000;       /* 天氣取得失敗後重試間隔（毫秒）
     applyMode();
     layout();
     setTimeout(function () { stage.classList.add('anim'); }, 150);  /* 初始畫面不播動畫，之後才啟用 */
+    setClockTag();
     tick();
+    watch();
+    syncClock();
     poll();
   }
 
@@ -597,7 +677,7 @@ var WX_RETRY_MS = 120000;       /* 天氣取得失敗後重試間隔（毫秒）
     if (draft) { ta.value = draft; }
 
     function say(msg, bad) { st.textContent = msg; st.className = bad ? 'bad' : ''; }
-    function hhmm() { var d = new Date(); return pad2(d.getHours()) + ':' + pad2(d.getMinutes()); }
+    function hhmm() { var d = tw(); return pad2(d.getUTCHours()) + ':' + pad2(d.getUTCMinutes()); }
 
     function send(text, okMsg) {
       if (busy) { return; }
