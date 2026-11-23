@@ -7,210 +7,286 @@
 <meta name="robots" content="noindex, nofollow">
 <meta name="referrer" content="no-referrer">
 <meta name="color-scheme" content="light dark">
-<meta name="theme-color" content="#EDF0F3" media="(prefers-color-scheme: light)">
-<meta name="theme-color" content="#0E141B" media="(prefers-color-scheme: dark)">
+<meta name="theme-color" content="#2C74DB">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="早報">
-<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <style>
 :root {
-  --mist: #EDF0F3;
-  --surface: #FFFFFF;
-  --ink: #14202B;
-  --muted: #5D6B78;
-  --line: #D9DFE5;
-  --tint: rgba(20, 32, 43, .05);
-  --track: rgba(20, 32, 43, .05);
-  --rain: #2F6FDB;
-  --rain-soft: rgba(47, 111, 219, .12);
-  --on-rain: #FFFFFF;
-  --wind: #E08A00;
-  --wind-ink: #A25B00;
-  --wind-soft: rgba(224, 138, 0, .16);
-  --on-wind: #14202B;
-  --warn: #C93C20;
-  --warn-soft: rgba(201, 60, 32, .10);
-  --ok: #2E8B6A;
-  --ok-soft: rgba(46, 139, 106, .13);
-  --bar: #2B3B4A;
-  --on-bar: #FFFFFF;
-  --shadow: 0 1px 0 rgba(20, 32, 43, .04), 0 10px 26px -14px rgba(20, 32, 43, .28);
-  --check: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><path d='m6 12.5 4 4 8-9' fill='none' stroke='%23fff' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'/></svg>");
-  --font: ui-rounded, "SF Pro Rounded", "Hiragino Maru Gothic ProN", system-ui, -apple-system, "PingFang TC", "Noto Sans TC", "Noto Sans CJK TC", "Microsoft JhengHei", sans-serif;
+  --paper: #F2F4F7;
+  --sheet: #FFFFFF;
+  --ink: #0E1A26;
+  --muted: #566474;
+  --line: #DCE1E7;
+  --tint: rgba(14, 26, 38, .055);
+  --accent: #2563D8;
+  --coral: #D8452F;
+  --coral-soft: rgba(216, 69, 47, .10);
+  --amber: #B86E00;
+  --ok: #26805F;
+  --ok-soft: rgba(38, 128, 95, .12);
+  --shadow: 0 1px 2px rgba(14, 26, 38, .05), 0 12px 28px -18px rgba(14, 26, 38, .35);
+  --serif: ui-serif, "New York", "Songti TC", "Noto Serif TC", "Source Han Serif TC", "Noto Serif CJK TC", serif;
+  --sans: -apple-system, "SF Pro Text", "PingFang TC", system-ui, "Noto Sans TC", "Noto Sans CJK TC", "Microsoft JhengHei", sans-serif;
+  --sky-top: #2C74DB;
+  --sky-bot: #1B4DA3;
+  --glow: radial-gradient(120% 90% at 85% -10%, rgba(255, 226, 150, .38), transparent 62%);
 }
 @media (prefers-color-scheme: dark) {
   :root {
-    --mist: #0E141B;
-    --surface: #16202A;
-    --ink: #E8EEF3;
-    --muted: #8FA0B0;
-    --line: #26323E;
-    --tint: rgba(255, 255, 255, .05);
-    --track: rgba(255, 255, 255, .05);
-    --rain: #6BA2FF;
-    --rain-soft: rgba(107, 162, 255, .16);
-    --on-rain: #0E141B;
-    --wind: #F2B24C;
-    --wind-ink: #F2B24C;
-    --wind-soft: rgba(242, 178, 76, .16);
-    --warn: #FF7A5C;
-    --warn-soft: rgba(255, 122, 92, .14);
-    --ok: #47B58F;
-    --ok-soft: rgba(71, 181, 143, .16);
-    --bar: #4A6076;
+    --paper: #0A0F15;
+    --sheet: #131B25;
+    --ink: #E8EDF2;
+    --muted: #98A6B5;
+    --line: #232F3D;
+    --tint: rgba(255, 255, 255, .06);
+    --accent: #6FA3FF;
+    --coral: #FF8468;
+    --coral-soft: rgba(255, 132, 104, .14);
+    --amber: #F2B24C;
+    --ok: #4CC09A;
+    --ok-soft: rgba(76, 192, 154, .16);
     --shadow: 0 0 0 1px rgba(255, 255, 255, .06);
-    --check: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><path d='m6 12.5 4 4 8-9' fill='none' stroke='%230E141B' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'/></svg>");
   }
 }
 
 * { box-sizing: border-box; }
-html { -webkit-text-size-adjust: 100%; background: var(--mist); }
+html { -webkit-text-size-adjust: 100%; background: var(--paper); }
 body {
-  margin: 0;
-  background: var(--mist);
-  color: var(--ink);
-  font: 400 16px/1.5 var(--font);
-  font-variant-numeric: tabular-nums;
-  padding: max(22px, env(safe-area-inset-top)) max(18px, env(safe-area-inset-right)) max(34px, env(safe-area-inset-bottom)) max(18px, env(safe-area-inset-left));
-  -webkit-tap-highlight-color: transparent;
+  margin: 0; background: var(--paper); color: var(--ink);
+  font: 400 16px/1.5 var(--sans); font-variant-numeric: tabular-nums;
+  -webkit-tap-highlight-color: transparent; overscroll-behavior-y: none;
 }
-.wrap { max-width: 520px; margin: 0 auto; }
-a:focus-visible, button:focus-visible, input:focus-visible { outline: 2px solid var(--rain); outline-offset: 2px; }
+body.lock { overflow: hidden; }
+a { color: inherit; }
+button { font: inherit; color: inherit; }
+a:focus-visible, button:focus-visible, input:focus-visible, summary:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.ico { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 1.9; stroke-linecap: round; stroke-linejoin: round; flex: none; }
 
-.ic { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; flex: none; }
+/* ——— 天空：整頁最飽和的東西，顏色跟著天氣與時間走 ——— */
+.hero {
+  position: relative; overflow: hidden; color: #fff;
+  background: linear-gradient(180deg, var(--sky-top), var(--sky-bot));
+  border-radius: 0 0 34px 34px;
+  padding: calc(env(safe-area-inset-top) + 10px) max(20px, env(safe-area-inset-right)) 22px max(20px, env(safe-area-inset-left));
+}
+.hero::before { content: ""; position: absolute; inset: 0; background: var(--glow); pointer-events: none; }
+.hero-in { position: relative; max-width: 520px; margin: 0 auto; }
+.top { display: flex; align-items: center; justify-content: space-between; min-height: 44px; }
+.top .d { font-size: 14.5px; font-weight: 600; letter-spacing: .01em; color: rgba(255, 255, 255, .94); }
+.top .btns { display: flex; gap: 10px; }
+.gbtn {
+  width: 40px; height: 40px; border: 0; border-radius: 50%; display: grid; place-items: center; cursor: pointer;
+  color: #fff; background: rgba(255, 255, 255, .17); -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px);
+}
+.gbtn:active { background: rgba(255, 255, 255, .3); }
+.gbtn[disabled] .ico { animation: spin 1s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+.hi { margin: 14px 0 0; font: 400 30px/1.15 var(--serif); letter-spacing: .02em; }
+.hnow { display: flex; align-items: flex-end; justify-content: space-between; gap: 12px; margin-top: 4px; }
+.deg { font: 300 98px/.9 var(--serif); letter-spacing: -.045em; margin-left: -4px; }
+.deg sup { font-size: .46em; vertical-align: top; position: relative; top: .08em; margin-left: 2px; letter-spacing: 0; }
+.cond { display: grid; justify-items: end; gap: 2px; padding-bottom: 6px; text-align: right; }
+.cond .ico { width: 44px; height: 44px; stroke-width: 1.5; }
+.cond b { font-size: 18px; font-weight: 650; }
+.meta { display: flex; flex-wrap: wrap; gap: 2px 16px; margin-top: 10px; font-size: 14px; color: rgba(255, 255, 255, .92); }
+.meta span { display: inline-flex; align-items: center; gap: 5px; }
 
-/* —— 標題 —— */
-.hello { margin: 6px 0 2px; font-size: 34px; line-height: 1.15; font-weight: 750; letter-spacing: -.01em; }
-.date { margin: 0 0 18px; color: var(--muted); font-size: 16px; }
+.chart { position: relative; height: 128px; margin: 12px -4px 0; }
+.chart svg { display: block; width: 100%; height: 100%; overflow: visible; }
+.chart text { fill: rgba(255, 255, 255, .88); font: 600 10.5px var(--sans); }
+.chart .tkx { fill: rgba(255, 255, 255, .78); font-weight: 500; }
+.chart .ln { fill: none; stroke: #fff; stroke-width: 2.4; stroke-linecap: round; stroke-linejoin: round; }
+.chart .ln.past { opacity: .5; }
+.chart .guide { stroke: rgba(255, 255, 255, .4); stroke-width: 1; stroke-dasharray: 2 3; }
+.chart .rb { fill: #A9D4FF; }
+.draw .chart:not(.again) .ln { stroke-dasharray: var(--len); stroke-dashoffset: var(--len); animation: draw 1.05s .12s cubic-bezier(.3, .7, .2, 1) forwards; }
+.draw .chart:not(.again) .area { opacity: 0; animation: fade .7s .55s forwards; }
+.draw .chart:not(.again) .orb { opacity: 0; transform-box: fill-box; transform-origin: center; animation: pop .5s 1s cubic-bezier(.2, 1.5, .4, 1) forwards; }
+@keyframes draw { to { stroke-dashoffset: 0; } }
+@keyframes fade { to { opacity: 1; } }
+@keyframes pop { from { opacity: 0; transform: scale(.2); } to { opacity: 1; transform: scale(1); } }
 
-/* —— 提示 —— */
-.notice { display: grid; grid-template-columns: 18px 1fr; gap: 10px; align-items: start; margin: 0 0 14px; padding: 11px 13px; border-radius: 12px; background: var(--warn-soft); font-size: 14px; line-height: 1.5; }
-.notice .ic { color: var(--warn); margin-top: 3px; }
-.notice button { display: block; margin-top: 8px; }
-.note { margin: 0; color: var(--muted); font-size: 14px; }
+.al { list-style: none; margin: 14px 0 0; padding: 12px 0 0; border-top: 1px solid rgba(255, 255, 255, .22); display: grid; gap: 9px; }
+.al li { display: grid; grid-template-columns: 22px 1fr; gap: 10px; align-items: start; font-size: 14.5px; line-height: 1.5; color: rgba(255, 255, 255, .97); }
+.al .ico { width: 20px; height: 20px; margin-top: 1px; }
+.al .txt { text-wrap: pretty; }
 
-/* —— 首屏面板：天氣 + 一日時間軸 —— */
-.panel { background: var(--surface); border-radius: 22px; padding: 18px 18px 18px; box-shadow: var(--shadow); }
-.wx { display: flex; align-items: center; gap: 12px; }
-.wx-ico { font-size: 34px; line-height: 1; }
-.wx-main { font-size: 19px; font-weight: 650; line-height: 1.3; }
-.wx-sub { color: var(--muted); font-size: 13.5px; }
+/* ——— 內容 ——— */
+.main { max-width: 520px; margin: 0 auto; padding: 24px max(20px, env(safe-area-inset-right)) calc(36px + env(safe-area-inset-bottom)) max(20px, env(safe-area-inset-left)); }
+.sec { margin-top: 36px; }
+.sec:first-child { margin-top: 0; }
+.sh { display: flex; align-items: center; justify-content: space-between; min-height: 32px; margin: 0 0 12px; }
+.sh h2 { margin: 0; font: 500 23px/1.2 var(--serif); letter-spacing: .01em; }
+.sh small { margin-left: 8px; font: 500 13px var(--sans); color: var(--muted); }
+.link { display: inline-flex; align-items: center; gap: 5px; padding: 10px 0 10px 10px; margin: -10px 0; font-size: 14px; font-weight: 600; color: var(--accent); text-decoration: none; background: none; border: 0; cursor: pointer; }
+.link .ico { width: 17px; height: 17px; }
+.link:active { opacity: .6; }
+.note { margin: 0; color: var(--muted); font-size: 14.5px; }
+.empty { display: grid; gap: 10px; justify-items: start; margin: 0; padding: 16px 18px; border-radius: 18px; background: var(--tint); color: var(--muted); font-size: 15px; }
+.empty b { color: var(--ink); font-weight: 600; }
+.pillbtn { min-height: 40px; padding: 0 16px; border: 0; border-radius: 999px; background: var(--ink); color: var(--sheet); font-size: 14px; font-weight: 650; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; }
+.pillbtn .ico { width: 17px; height: 17px; }
+.pillbtn:active { opacity: .75; }
+.notice { display: grid; grid-template-columns: 20px 1fr; gap: 10px; margin: 0 0 22px; padding: 12px 14px; border-radius: 16px; background: var(--coral-soft); font-size: 14.5px; line-height: 1.5; }
+.notice .ico { color: var(--coral); margin-top: 2px; }
+.notice button { margin-top: 8px; }
 
-.strip { margin-top: 16px; }
-.axis, .lanes { margin-left: 34px; position: relative; }
-.axis { height: 18px; font-size: 11px; color: var(--muted); }
-.axis span { position: absolute; top: 0; transform: translateX(-50%); }
-.axis span.first { transform: none; }
-.lanes { padding-bottom: 2px; }
-.grid i { position: absolute; top: 0; bottom: 0; width: 1px; background: var(--line); }
-.lane { position: relative; height: 22px; margin-top: 6px; border-radius: 7px; background: var(--track); }
-.lane.ev { height: auto; margin-top: 8px; background: none; }
-.lane .lbl { position: absolute; left: -34px; top: 0; width: 30px; font-size: 11px; line-height: 22px; font-weight: 600; color: var(--muted); }
-.subl { position: relative; height: 22px; margin-bottom: 4px; border-radius: 7px; background: var(--track); }
-.subl:last-child { margin-bottom: 0; }
-.bar { position: absolute; top: 0; bottom: 0; min-width: 6px; border-radius: 7px; padding: 0 7px; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; font-size: 11px; line-height: 22px; font-weight: 650; letter-spacing: .01em; animation: grow .7s cubic-bezier(.2, .7, .2, 1) both; animation-delay: calc(var(--i, 0) * 50ms + 80ms); }
-.bar.rain { background: var(--rain); color: var(--on-rain); }
-.bar.wind { background: var(--wind); color: var(--on-wind); }
-.bar.evt { background: var(--bar); color: var(--on-bar); font-weight: 600; }
-.bar.evt.tight { box-shadow: 0 0 0 2px var(--surface), 0 0 0 4px var(--warn); }
-.still .bar { animation: none; }
-@keyframes grow { from { clip-path: inset(-6px 100% -6px -6px); } to { clip-path: inset(-6px -6px -6px -6px); } }
-.elapsed { position: absolute; z-index: 2; top: -2px; bottom: -2px; left: 0; background: var(--surface); opacity: .6; pointer-events: none; border-radius: 6px; }
-.now { position: absolute; z-index: 3; top: -6px; bottom: -2px; width: 2px; margin-left: -1px; background: var(--ink); border-radius: 1px; pointer-events: none; }
-.now::before { content: ""; position: absolute; top: -1px; left: -3px; width: 8px; height: 8px; border-radius: 50%; background: var(--ink); }
-
-.alerts { list-style: none; margin: 16px 0 0; padding: 0; display: grid; gap: 11px; }
-.alert { display: grid; grid-template-columns: 28px 1fr; gap: 11px; align-items: start; font-size: 15px; line-height: 1.5; }
-.badge { width: 28px; height: 28px; border-radius: 50%; display: grid; place-items: center; }
-.badge .ic { width: 16px; height: 16px; }
-.alert.layers .badge { background: var(--tint); color: var(--ink); }
-.alert.rain .badge { background: var(--rain-soft); color: var(--rain); }
-.alert.wind .badge { background: var(--wind-soft); color: var(--wind-ink); }
-.alert.ok .badge { background: var(--ok-soft); color: var(--ok); }
-.alert span.txt { padding-top: 2px; text-wrap: pretty; }
-
-/* —— 分區 —— */
-.sec { margin-top: 30px; }
-.sec h2 { display: flex; align-items: baseline; justify-content: space-between; margin: 0 0 8px; font-size: 18px; line-height: 1.3; font-weight: 700; }
-.sec h2 small { color: var(--muted); font-size: 13px; font-weight: 500; }
-.empty { margin: 2px 0 0; color: var(--muted); font-size: 15px; }
-
-/* 行程：節點與連線 */
-.route { list-style: none; margin: 0; padding: 0; }
-.stop { position: relative; display: grid; grid-template-columns: 3.3rem 18px 1fr; column-gap: 8px; padding: 0 0 16px; }
-.stop:last-child { padding-bottom: 2px; }
-.stop::before { content: ""; position: absolute; left: calc(3.3rem + 8px + 8px); top: 0; bottom: 0; width: 2px; background: var(--line); }
-.stop:first-child::before { top: 14px; }
-.stop:last-child::before { bottom: auto; height: 15px; }
-.stop:only-child::before { display: none; }
-.stop.tight::before { background: linear-gradient(var(--warn), var(--warn)) 0 0 / 100% 14px no-repeat, var(--line); }
-.stop.tightnext::before { background: linear-gradient(var(--warn), var(--warn)) 0 14px / 100% calc(100% - 14px) no-repeat, var(--line); }
-.stop.tight.tightnext::before { background: var(--warn); }
-.stop .t { padding-top: 1px; font-size: 15px; font-weight: 650; text-align: left; }
-.stop .node { position: relative; z-index: 1; width: 12px; height: 12px; margin: 7px 0 0 3px; border-radius: 50%; background: var(--bar); box-shadow: 0 0 0 3px var(--mist); }
-.stop.allday .node { background: var(--mist); border: 2px solid var(--bar); }
-.stop.tight .node { background: var(--warn); }
-.stop .ttl { font-size: 16.5px; font-weight: 600; line-height: 1.4; }
-.stop .loc { color: var(--muted); font-size: 13.5px; }
-.stop.past { opacity: .55; }
-.gaprow { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 8px; margin-top: 6px; }
-.gapchip { display: inline-flex; align-items: center; gap: 5px; padding: 3px 10px 3px 7px; border-radius: 999px; background: var(--warn-soft); color: var(--warn); font-size: 13px; font-weight: 650; line-height: 1.35; }
-.gapchip .ic { width: 15px; height: 15px; }
+/* 行程：時間 + 節點 + 內容；連線顏色代表交通是否緊湊 */
+.allday { display: flex; flex-wrap: wrap; gap: 8px; margin: 0 0 16px; }
+.pill { display: inline-flex; align-items: center; gap: 8px; max-width: 100%; padding: 6px 14px 6px 6px; border-radius: 999px; background: var(--tint); font-size: 14.5px; font-weight: 600; }
+.pill i { padding: 2px 9px; border-radius: 999px; background: var(--ink); color: var(--sheet); font: 600 11.5px var(--sans); }
+.route { display: block; }
+.ev { position: relative; display: grid; grid-template-columns: 52px 14px minmax(0, 1fr); column-gap: 10px; padding: 0 0 20px; text-decoration: none; color: inherit; }
+.ev:last-child { padding-bottom: 2px; }
+.ev::before { content: ""; position: absolute; left: calc(52px + 10px + 6px); top: 0; bottom: 0; width: 2px; background: var(--line); }
+.ev:first-child::before { top: 12px; }
+.ev:last-child::before { bottom: auto; height: 12px; }
+.ev:only-child::before { display: none; }
+.ev.tight::before { background: linear-gradient(var(--coral), var(--coral)) 0 0 / 100% 12px no-repeat, var(--line); }
+.ev.tn::before { background: linear-gradient(var(--coral), var(--coral)) 0 12px / 100% calc(100% - 12px) no-repeat, var(--line); }
+.ev.tight.tn::before { background: var(--coral); }
+.ev .t { font: 500 19px/1.2 var(--serif); }
+.ev .t small { display: block; margin-top: 2px; font: 400 12px var(--sans); color: var(--muted); }
+.ev .node { position: relative; z-index: 1; width: 14px; height: 14px; margin-top: 3px; border-radius: 50%; background: var(--ink); box-shadow: 0 0 0 4px var(--paper); }
+.ev.now .node { background: var(--accent); box-shadow: 0 0 0 4px var(--paper), 0 0 0 6px rgba(37, 99, 216, .32); }
+.ev.tight .node { background: var(--coral); }
+.ev .ttl { font-size: 17px; font-weight: 600; line-height: 1.35; text-wrap: pretty; }
+.ev .loc { display: flex; align-items: center; gap: 5px; margin-top: 3px; font-size: 13.5px; color: var(--muted); }
+.ev .loc .ico { width: 14px; height: 14px; }
+.ev.past { opacity: .5; }
+.tag { margin-left: 6px; padding: 1px 8px; border-radius: 999px; font: 650 11.5px/1.5 var(--sans); vertical-align: 2px; white-space: nowrap; }
+.tag.now { background: var(--accent); color: #fff; }
+.tag.next { box-shadow: inset 0 0 0 1.5px var(--ink); }
+.gaprow { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 8px; margin-top: 8px; }
+.gapchip { display: inline-flex; align-items: center; gap: 5px; padding: 3px 10px 3px 7px; border-radius: 999px; background: var(--coral-soft); color: var(--coral); font-size: 13px; font-weight: 650; }
+.gapchip .ico { width: 15px; height: 15px; }
 .gaptxt { color: var(--muted); font-size: 13px; }
 
 /* 待辦 */
-.todo { background: var(--tint); border-radius: 14px; padding: 2px 14px; }
-.todo label { display: grid; grid-template-columns: 24px 1fr; gap: 12px; align-items: start; padding: 12px 0; border-top: 1px solid var(--line); font-size: 16px; line-height: 1.45; cursor: pointer; }
+.todo { padding: 4px 16px; border-radius: 22px; background: var(--sheet); box-shadow: var(--shadow); }
+.todo label { display: grid; grid-template-columns: 26px 1fr; gap: 14px; align-items: center; padding: 13px 0; border-top: 1px solid var(--line); font-size: 16.5px; line-height: 1.4; cursor: pointer; }
 .todo label:first-child { border-top: 0; }
-.todo input { -webkit-appearance: none; appearance: none; width: 24px; height: 24px; margin: 0; border: 2px solid var(--muted); border-radius: 8px; background: transparent center / 18px no-repeat; }
-.todo input:checked { background-color: var(--ok); background-image: var(--check); border-color: var(--ok); }
-.todo input:focus-visible { outline: 2px solid var(--rain); outline-offset: 2px; }
-.todo label.done span { color: var(--muted); text-decoration: line-through; }
-.todo-note { margin: 8px 2px 0; color: var(--muted); font-size: 12.5px; }
+.todo input { -webkit-appearance: none; appearance: none; width: 26px; height: 26px; margin: 0; border: 2px solid var(--muted); border-radius: 50%; background: transparent center / 16px no-repeat; transition: background-color .18s, border-color .18s; }
+.todo input:checked { background-color: var(--ok); border-color: var(--ok); background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><path d='m5.5 12.5 4.2 4.2 8.8-9.4' fill='none' stroke='%23fff' stroke-width='3.2' stroke-linecap='round' stroke-linejoin='round'/></svg>"); }
+.todo span { transition: color .18s; }
+.todo label.done span { color: var(--muted); text-decoration: line-through; text-decoration-color: rgba(86, 100, 116, .6); }
+.bar { width: 64px; height: 6px; border-radius: 3px; background: var(--tint); overflow: hidden; margin-left: 10px; display: inline-block; vertical-align: 1px; }
+.bar i { display: block; height: 100%; border-radius: 3px; background: var(--ok); transition: width .3s; }
+.todo-note { margin: 10px 4px 0; color: var(--muted); font-size: 12.5px; }
 
-/* 倒數日 */
-.cd { display: flex; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
-.cd > div { flex: 1 1 0; min-width: 0; padding: 12px 0; }
-.cd > div + div { padding-left: 16px; border-left: 1px solid var(--line); }
-.cd b { font-size: 30px; line-height: 1.1; font-weight: 750; letter-spacing: -.02em; }
-.cd .u { margin-left: 3px; font-size: 14px; font-weight: 600; }
-.cd .nm { color: var(--muted); font-size: 13.5px; overflow-wrap: anywhere; }
+/* 倒數日：票券；快到了的反白 */
+.tickets { display: flex; gap: 12px; margin: 0 -20px -8px; padding: 4px 20px 22px; overflow-x: auto; scroll-snap-type: x proximity; scroll-padding: 0 20px; scrollbar-width: none; -webkit-overflow-scrolling: touch; }
+.tickets::-webkit-scrollbar { display: none; }
+.tk { --cut: 78px; position: relative; flex: none; width: 132px; height: 128px; padding: 0; border: 0; border-radius: 20px; background: var(--sheet); box-shadow: var(--shadow); color: var(--ink); text-align: left; cursor: pointer; scroll-snap-align: start; display: block; }
+.tk::before, .tk::after { content: ""; position: absolute; top: var(--cut); width: 14px; height: 14px; border-radius: 50%; background: var(--paper); transform: translateY(-50%); }
+.tk::before { left: -7px; }
+.tk::after { right: -7px; }
+.tk .top { position: absolute; inset: 0 0 auto 0; height: var(--cut); padding: 12px 16px 0; display: block; min-height: 0; }
+.tk .num { font: 400 46px/1 var(--serif); letter-spacing: -.03em; }
+.tk .num small { margin-left: 3px; font: 600 14px var(--sans); letter-spacing: 0; }
+.tk .num.day0 { font-size: 26px; line-height: 46px; letter-spacing: 0; }
+.tk .num.day0 small { font-size: 13px; }
+.tk .bot { position: absolute; inset: var(--cut) 0 0 0; padding: 9px 16px 0; border-top: 1.5px dashed var(--line); }
+.tk .nm { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; font-size: 14.5px; font-weight: 650; line-height: 1.3; overflow-wrap: anywhere; }
+.tk .dt { margin-top: 2px; font-size: 11.5px; color: var(--muted); display: flex; align-items: center; gap: 4px; }
+.tk .dt .ico { width: 12px; height: 12px; }
+.tk.soon { background: var(--ink); color: var(--sheet); }
+.tk.soon .bot { border-top-color: rgba(255, 255, 255, .28); }
+.tk.soon .dt { color: inherit; opacity: .72; }
+@media (prefers-color-scheme: dark) { .tk.soon { background: #E8EDF2; color: #0E1A26; } .tk.soon .bot { border-top-color: rgba(14, 26, 38, .25); } }
+.tk.today { background: var(--coral); color: #fff; }
+.tk.today .bot { border-top-color: rgba(255, 255, 255, .4); }
+.tk.today .dt { color: inherit; opacity: .85; }
+.tk.past { opacity: .55; }
+.tk.add { background: none; box-shadow: inset 0 0 0 1.6px var(--line); display: grid; place-items: center; align-content: center; gap: 6px; color: var(--muted); font-size: 14px; font-weight: 600; }
+.tk.add::before, .tk.add::after { display: none; }
+.tk.add .ico { width: 26px; height: 26px; }
 
-/* 新聞 */
-.news h3 { margin: 20px 0 2px; font-size: 15px; font-weight: 700; }
-.news ul { list-style: none; margin: 0; padding: 0; }
-.news li { border-top: 1px solid var(--line); }
-.news li:first-child { border-top: 0; }
-.news a { display: block; padding: 10px 0; color: inherit; text-decoration: none; }
-.news a:active { opacity: .6; }
-.nt { font-size: 16px; line-height: 1.45; font-weight: 520; }
-.ns { margin-top: 1px; color: var(--muted); font-size: 12.5px; }
+/* 新聞：每類第一則放大成頭條 */
+.ncat { margin-top: 28px; }
+.ncat:first-of-type { margin-top: 4px; }
+.ncat h3 { display: flex; align-items: baseline; gap: 10px; margin: 0 0 2px; font: 500 20px/1.3 var(--serif); }
+.ncat h3 small { font: 500 12.5px var(--sans); color: var(--muted); }
+.ncat ul { list-style: none; margin: 0; padding: 0; }
+.ncat li + li a { border-top: 1px solid var(--line); }
+.ncat a { display: block; padding: 13px 0; text-decoration: none; color: inherit; }
+.ncat a:active { opacity: .6; }
+.nt { font-size: 16px; line-height: 1.45; font-weight: 520; text-wrap: pretty; }
+.ncat li:first-child .nt { font: 500 19px/1.42 var(--serif); }
+.ns { display: flex; align-items: center; gap: 8px; margin-top: 5px; font-size: 12.5px; color: var(--muted); }
+.ns i { width: 7px; height: 7px; border-radius: 50%; background: var(--c, #7B8794); flex: none; }
+.ns .tr { padding: 0 5px; border-radius: 5px; box-shadow: inset 0 0 0 1px var(--line); font-size: 10.5px; line-height: 16px; }
 
-/* 頁尾 */
-.foot { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: 34px; color: var(--muted); font-size: 13px; }
-.btns { display: flex; gap: 8px; flex: none; }
-.ghost { min-height: 44px; padding: 0 16px; border: 1px solid var(--line); border-radius: 999px; background: transparent; color: var(--ink); font: inherit; font-size: 14px; font-weight: 600; cursor: pointer; }
-.ghost:active { opacity: .6; }
-.ghost[disabled] { opacity: .5; }
-.solid { min-height: 48px; padding: 0 20px; border: 0; border-radius: 14px; background: var(--ink); color: var(--surface); font: inherit; font-size: 16px; font-weight: 650; cursor: pointer; }
-.solid:active { opacity: .8; }
+.foot { margin-top: 38px; text-align: center; color: var(--muted); font-size: 12.5px; }
 
-/* 設定 */
-.setup h1 { margin: 8px 0 6px; font-size: 28px; line-height: 1.2; font-weight: 750; }
+/* ——— 彈出面板 ——— */
+#sheet-root .back { position: fixed; inset: 0; z-index: 50; background: rgba(6, 12, 20, .5); opacity: 0; transition: opacity .25s; }
+#sheet-root.open .back { opacity: 1; }
+#sheet-root .sheet {
+  position: fixed; z-index: 51; left: 0; right: 0; bottom: 0; max-width: 520px; margin: 0 auto; max-height: 90vh; overflow-y: auto; overscroll-behavior: contain;
+  background: var(--sheet); border-radius: 28px 28px 0 0; padding: 8px 20px calc(24px + env(safe-area-inset-bottom));
+  transform: translateY(105%); transition: transform .3s cubic-bezier(.2, .85, .25, 1); box-shadow: 0 -20px 50px -20px rgba(0, 0, 0, .5);
+}
+#sheet-root.open .sheet { transform: none; }
+.grip { width: 38px; height: 5px; margin: 4px auto 6px; border-radius: 3px; background: var(--line); }
+.sh-head { display: flex; align-items: center; justify-content: space-between; margin: 6px 0 14px; }
+.sh-head h2 { margin: 0; font: 500 24px/1.2 var(--serif); }
+.x { width: 36px; height: 36px; border: 0; border-radius: 50%; background: var(--tint); display: grid; place-items: center; cursor: pointer; color: var(--muted); }
+.fld { display: block; margin: 0 0 16px; font-size: 13.5px; font-weight: 650; color: var(--muted); }
+.fld input[type=text], .fld input[type=url], .fld input[type=date], .fld input[type=search] {
+  display: block; width: 100%; height: 50px; margin-top: 7px; padding: 0 14px; border: 0; border-radius: 14px; background: var(--tint); color: var(--ink);
+  font: 400 17px var(--sans); -webkit-appearance: none; appearance: none; min-width: 0;
+}
+.fld input::placeholder { color: var(--muted); opacity: .7; }
+.sw { display: flex; align-items: center; justify-content: space-between; gap: 14px; margin: 0 0 20px; padding: 12px 14px; border-radius: 14px; background: var(--tint); font-size: 16px; }
+.sw small { display: block; color: var(--muted); font-size: 12.5px; }
+.sw input { -webkit-appearance: none; appearance: none; flex: none; width: 52px; height: 32px; margin: 0; border-radius: 16px; background: var(--line); position: relative; transition: background .2s; cursor: pointer; }
+.sw input::after { content: ""; position: absolute; left: 3px; top: 3px; width: 26px; height: 26px; border-radius: 50%; background: #fff; box-shadow: 0 1px 3px rgba(0, 0, 0, .3); transition: transform .2s; }
+.sw input:checked { background: var(--ok); }
+.sw input:checked::after { transform: translateX(20px); }
+.acts { display: grid; gap: 10px; }
+.btn { min-height: 50px; padding: 0 20px; border: 0; border-radius: 15px; font-size: 16.5px; font-weight: 650; cursor: pointer; background: var(--tint); }
+.btn.pri { background: var(--ink); color: var(--sheet); }
+.btn.dng { background: var(--coral-soft); color: var(--coral); }
+.btn:active { opacity: .7; }
+.btn[disabled] { opacity: .5; }
+.err { margin: -6px 0 14px; color: var(--coral); font-size: 14px; }
+.okmsg { margin: 8px 0 0; color: var(--ok); font-size: 14px; font-weight: 600; }
+.grp { margin: 0 0 26px; }
+.grp h3 { margin: 0 0 6px; font: 500 19px/1.3 var(--serif); }
+.grp > p { margin: 0 0 12px; color: var(--muted); font-size: 14.5px; }
+.grp ol { margin: 8px 0 0; padding-left: 22px; color: var(--muted); font-size: 14.5px; }
+.grp li { margin: 4px 0; }
+.grp details { margin: 0 0 14px; padding: 12px 14px; border-radius: 14px; background: var(--tint); }
+.grp summary { cursor: pointer; font-size: 14.5px; font-weight: 650; }
+.lnk { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 12px 14px; margin: 0 0 8px; border-radius: 14px; background: var(--tint); font-size: 14.5px; }
+.lnk span { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.lnk button { min-height: 36px; padding: 0 12px; border: 0; border-radius: 10px; background: var(--coral-soft); color: var(--coral); font-size: 13.5px; font-weight: 650; cursor: pointer; flex: none; }
+.row2 { display: flex; gap: 10px; }
+.row2 .fld { flex: 1; margin: 0; min-width: 0; }
+.row2 .btn { align-self: flex-end; flex: none; }
+.warnnote { margin: 10px 0 0; padding: 10px 12px; border-radius: 12px; background: var(--coral-soft); font-size: 13.5px; line-height: 1.5; }
+
+.toast { position: fixed; z-index: 80; left: 50%; bottom: calc(24px + env(safe-area-inset-bottom)); transform: translate(-50%, 20px); opacity: 0; max-width: calc(100% - 40px); padding: 11px 18px; border-radius: 999px; background: var(--ink); color: var(--sheet); font-size: 14.5px; font-weight: 600; pointer-events: none; transition: opacity .2s, transform .25s; }
+.toast.on { opacity: 1; transform: translate(-50%, 0); }
+
+.load { margin: 28px 0; color: var(--muted); font-size: 15px; }
+.setup h1 { margin: 8px 0 6px; font: 500 28px/1.2 var(--serif); }
 .setup p { margin: 0 0 18px; color: var(--muted); font-size: 15px; }
-.setup label { display: block; margin: 0 0 14px; font-size: 14px; font-weight: 650; }
-.setup input { display: block; width: 100%; height: 48px; margin-top: 6px; padding: 0 12px; border: 1px solid var(--line); border-radius: 12px; background: var(--surface); color: var(--ink); font: inherit; font-size: 16px; font-weight: 400; }
-.setup .err { margin: -4px 0 14px; color: var(--warn); font-size: 14px; }
-.setup .row { display: flex; gap: 10px; align-items: center; margin-top: 6px; }
 
-.load { margin: 26px 0; color: var(--muted); font-size: 15px; }
-
-@media (prefers-reduced-motion: reduce) { .bar { animation: none; } }
+@media (prefers-reduced-motion: reduce) {
+  .draw .chart .ln, .draw .chart .area, .draw .chart .orb { animation: none; stroke-dasharray: none; stroke-dashoffset: 0; opacity: 1; }
+  #sheet-root .sheet, #sheet-root .back, .toast, .todo input, .bar i { transition: none; }
+  .gbtn[disabled] .ico { animation: none; }
+}
 </style>
 </head>
 <body>
-<div class="wrap" id="app"><p class="load">載入中…</p></div>
+<div id="app"><div class="main"><p class="load">載入中…</p></div></div>
+<div id="sheet-root"></div>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
 <noscript><p style="padding:20px">這個頁面需要開啟 JavaScript。</p></noscript>
 
 <script>
@@ -219,17 +295,19 @@ a:focus-visible, button:focus-visible, input:focus-visible { outline: 2px solid 
 
   var TZ = "Asia/Taipei";
   var WD = ["日", "一", "二", "三", "四", "五", "六"];
-  var T0 = 360, T1 = 1440, SPAN = T1 - T0;          // 時間軸：06:00–24:00
   var STALE_MS = 10 * 60 * 1000;                     // 回到頁面時，超過 10 分鐘就自動更新
+  var SOON_DAYS = 7;                                 // 倒數 ≤ 7 天的票券反白
   var root = document.getElementById("app");
-  var state = { cfg: null, data: null, at: 0, busy: false, error: null, view: "brief", animated: false, demo: false, setupMsg: "" };
+  var sheetRoot = document.getElementById("sheet-root");
+  var toastEl = document.getElementById("toast");
+  var state = { cfg: null, data: null, at: 0, busy: false, error: null, view: "brief", animated: false, demo: "", setupMsg: "" };
 
   // ---------- 儲存（Safari 私密模式可能丟例外）----------
   function lsGet(k) { try { return localStorage.getItem(k); } catch (e) { return null; } }
   function lsSet(k, v) { try { localStorage.setItem(k, v); } catch (e) { /* 忽略 */ } }
   function jget(k, d) { try { var v = JSON.parse(lsGet(k)); return v == null ? d : v; } catch (e) { return d; } }
 
-  // ---------- DOM 小工具（內容一律走 textContent，不用 innerHTML 塞資料）----------
+  // ---------- DOM 小工具（資料一律走 textContent，不用 innerHTML 塞資料）----------
   function h(tag, attrs) {
     var el = document.createElement(tag);
     if (attrs) Object.keys(attrs).forEach(function (k) {
@@ -237,38 +315,139 @@ a:focus-visible, button:focus-visible, input:focus-visible { outline: 2px solid 
       if (v == null || v === false) return;
       if (k === "class") el.className = v;
       else if (k === "text") el.textContent = v;
+      else if (k === "style") el.setAttribute("style", v);
       else if (k.slice(0, 2) === "on") el.addEventListener(k.slice(2), v);
       else el.setAttribute(k, v === true ? "" : v);
     });
-    for (var i = 2; i < arguments.length; i++) {
-      var c = arguments[i];
-      if (c == null || c === false) continue;
-      if (Array.isArray(c)) c.forEach(function (x) { if (x) el.appendChild(typeof x === "string" ? document.createTextNode(x) : x); });
-      else el.appendChild(typeof c === "string" ? document.createTextNode(c) : c);
-    }
+    for (var i = 2; i < arguments.length; i++) add(el, arguments[i]);
     return el;
   }
+  function add(el, c) {
+    if (c == null || c === false) return;
+    if (Array.isArray(c)) c.forEach(function (x) { add(el, x); });
+    else el.appendChild(typeof c === "string" ? document.createTextNode(c) : c);
+  }
   var ICONS = {
-    layers: '<path d="M12 3.5 3.5 8.2 12 13l8.5-4.8L12 3.5Z"/><path d="m3.5 12.6 8.5 4.8 8.5-4.8"/><path d="m3.5 16.8 8.5 4.7 8.5-4.7" opacity=".55"/>',
-    rain: '<path d="M3.5 12.5a8.5 8.5 0 0 1 17 0h-17Z"/><path d="M12 12.5V18a2.2 2.2 0 0 0 4.4 0"/><path d="M12 4V3"/>',
-    wind: '<path d="M3 8.5h9.5a2.7 2.7 0 1 0-2.6-3.2"/><path d="M3 12.5h14.5a2.7 2.7 0 1 1-2.6 3.2"/><path d="M3 16.5h6"/>',
-    check: '<path d="m5 12.5 4.5 4.5L19 7.5"/>',
-    warn: '<path d="M12 4 2.8 20h18.4L12 4Z"/><path d="M12 10v4.4"/><path d="M12 17.4v.01"/>'
+    refresh: '<polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/>',
+    sliders: '<line x1="4" y1="21" x2="4" y2="14"/><line x1="4" y1="10" x2="4" y2="3"/><line x1="12" y1="21" x2="12" y2="12"/><line x1="12" y1="8" x2="12" y2="3"/><line x1="20" y1="21" x2="20" y2="16"/><line x1="20" y1="12" x2="20" y2="3"/><line x1="1" y1="14" x2="7" y2="14"/><line x1="9" y1="8" x2="15" y2="8"/><line x1="17" y1="16" x2="23" y2="16"/>',
+    plus: '<line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>',
+    x: '<line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>',
+    calendar: '<rect x="3" y="4" width="18" height="18" rx="3"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>',
+    pin: '<path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/>',
+    repeat: '<polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/>',
+    check: '<polyline points="20 6 9 17 4 12"/>',
+    warn: '<path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>',
+    layers: '<polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/>',
+    umbrella: '<path d="M23 12a11.05 11.05 0 0 0-22 0zm-5 7a3 3 0 0 1-6 0v-7"/>',
+    wind: '<path d="M9.59 4.59A2 2 0 1 1 11 8H2m10.59 11.41A2 2 0 1 0 14 16H2m15.73-8.27A2.5 2.5 0 1 1 19.5 12H2"/>',
+    // 天氣符號
+    sun: '<circle cx="12" cy="12" r="4.5"/><line x1="12" y1="1.5" x2="12" y2="4"/><line x1="12" y1="20" x2="12" y2="22.5"/><line x1="4.2" y1="4.2" x2="6" y2="6"/><line x1="18" y1="18" x2="19.8" y2="19.8"/><line x1="1.5" y1="12" x2="4" y2="12"/><line x1="20" y1="12" x2="22.5" y2="12"/><line x1="4.2" y1="19.8" x2="6" y2="18"/><line x1="18" y1="6" x2="19.8" y2="4.2"/>',
+    moon: '<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>',
+    cloud: '<path d="M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z"/>',
+    partly: '<circle cx="8" cy="8" r="3.2"/><line x1="8" y1="1.8" x2="8" y2="3"/><line x1="1.8" y1="8" x2="3" y2="8"/><line x1="3.6" y1="3.6" x2="4.4" y2="4.4"/><line x1="12.4" y1="3.6" x2="11.6" y2="4.4"/><path d="M19 20h-8.5a4.3 4.3 0 0 1-.6-8.55A5.7 5.7 0 0 1 20.9 13.3 3.4 3.4 0 0 1 19 20z"/>',
+    rain: '<line x1="16" y1="13" x2="16" y2="21"/><line x1="8" y1="13" x2="8" y2="21"/><line x1="12" y1="15" x2="12" y2="23"/><path d="M20 16.58A5 5 0 0 0 18 7h-1.26A8 8 0 1 0 4 15.25"/>',
+    storm: '<path d="M19 16.9A5 5 0 0 0 18 7h-1.26a8 8 0 1 0-11.62 9"/><polyline points="13 11 9 17 15 17 11 23"/>',
+    snow: '<path d="M20 17.58A5 5 0 0 0 18 8h-1.26A8 8 0 1 0 4 16.25"/><line x1="8" y1="16" x2="8.01" y2="16"/><line x1="8" y1="20" x2="8.01" y2="20"/><line x1="12" y1="18" x2="12.01" y2="18"/><line x1="12" y1="22" x2="12.01" y2="22"/><line x1="16" y1="16" x2="16.01" y2="16"/><line x1="16" y1="20" x2="16.01" y2="20"/>',
+    fog: '<path d="M18 9h-1.26A7 7 0 1 0 6 14"/><line x1="3" y1="17" x2="21" y2="17"/><line x1="6" y1="21" x2="18" y2="21"/>'
   };
-  function icon(name) {
+  function ico(name, cls) {
     var w = document.createElement("span");
-    w.innerHTML = '<svg class="ic" viewBox="0 0 24 24" aria-hidden="true" focusable="false">' + ICONS[name] + "</svg>";
+    w.innerHTML = '<svg class="ico' + (cls ? " " + cls : "") + '" viewBox="0 0 24 24" aria-hidden="true" focusable="false">' + (ICONS[name] || "") + "</svg>";
     return w.firstChild;
   }
   function isHttp(u) { return /^https?:\/\//i.test(u || ""); }
+  function toast(msg) {
+    toastEl.textContent = msg; toastEl.classList.add("on");
+    clearTimeout(toast.t); toast.t = setTimeout(function () { toastEl.classList.remove("on"); }, 2400);
+  }
 
   // ---------- 時間（一律用台北時間，與後端一致）----------
   var fmt = new Intl.DateTimeFormat("en-CA", { timeZone: TZ, year: "numeric", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit", hourCycle: "h23" });
   function parts(d) { var o = {}; fmt.formatToParts(d || new Date()).forEach(function (p) { o[p.type] = p.value; }); return o; }
   function nowTP() { var o = parts(); return { date: o.year + "-" + o.month + "-" + o.day, hour: +o.hour, min: +o.hour * 60 + +o.minute }; }
   function hhmm(ms) { var o = parts(new Date(ms)); return o.hour + ":" + o.minute; }
-  function weekdayOf(ymd) { var p = ymd.split("-"); return WD[new Date(Date.UTC(+p[0], +p[1] - 1, +p[2])).getUTCDay()]; }
-  function greeting(hour) { return hour < 11 ? "早安" : hour < 18 ? "午安" : "晚上好"; }
+  function pad2(n) { return (n < 10 ? "0" : "") + n; }
+  function mmText(m) { m = Math.min(1440, m); return pad2(Math.floor(m / 60) % 24 + (m === 1440 ? 24 : 0)) + ":" + pad2(m % 60); }
+  function dnum(ymd) { var p = ymd.split("-"); return Date.UTC(+p[0], +p[1] - 1, +p[2]) / 86400000; }
+  function weekdayOf(ymd) { return WD[new Date(dnum(ymd) * 86400000).getUTCDay()]; }
+  function greeting(hour) { return hour < 5 ? "夜深了" : hour < 11 ? "早安" : hour < 18 ? "午安" : "晚上好"; }
+  function toMin(hm) { var p = String(hm || "").split(":"); return p.length === 2 ? +p[0] * 60 + +p[1] : NaN; }
+  // iPhone「行事曆」App 的深層連結：calshow:<自 2001-01-01 起算的秒數>
+  function calshow(ymd, minutes) {
+    var p = ymd.split("-"), ms = Date.UTC(+p[0], +p[1] - 1, +p[2]) - 8 * 3600000 + (minutes || 0) * 60000;
+    return "calshow:" + Math.floor(ms / 1000 - 978307200);
+  }
+
+  // ---------- 倒數日（與後端同一套算法，讓編輯後能立刻顯示）----------
+  function isLeap(y) { return y % 4 === 0 && (y % 100 !== 0 || y % 400 === 0); }
+  function nextYearly(ymd, today) {
+    var p = ymd.split("-"), ty = +today.slice(0, 4), cand = ymd;
+    for (var y = ty; y <= ty + 1; y++) {
+      var m = +p[1], d = +p[2];
+      if (m === 2 && d === 29 && !isLeap(y)) d = 28;
+      cand = y + "-" + pad2(m) + "-" + pad2(d);
+      if (cand >= today) return cand;
+    }
+    return cand;
+  }
+  function cdView(list, today) {
+    var out = (list || []).map(function (it) {
+      var target = it.repeat === "yearly" ? nextYearly(it.date, today) : it.date;
+      return { id: it.id, name: it.name, date: it.date, repeat: it.repeat === "yearly" ? "yearly" : "", target: target, days: dnum(target) - dnum(today) };
+    });
+    out.sort(function (a, b) { var ap = a.days < 0, bp = b.days < 0; if (ap !== bp) return ap ? 1 : -1; return ap ? b.days - a.days : a.days - b.days; });
+    return out;
+  }
+  function cdPlain(list) { return list.map(function (c) { return { id: c.id, name: c.name, date: c.date, repeat: c.repeat }; }); }
+  function newId() { return "c" + Date.now().toString(36) + Math.random().toString(36).slice(2, 5); }
+
+  // ---------- 天空：依天氣代碼與時間挑漸層 ----------
+  var SKY = {
+    clear:  { top: "#2C74DB", bot: "#1B4DA3", glow: "radial-gradient(120% 90% at 85% -10%, rgba(255,226,150,.38), transparent 62%)", tc: "#2C74DB" },
+    partly: { top: "#3E72B6", bot: "#244E80", glow: "radial-gradient(120% 90% at 85% -10%, rgba(255,230,170,.28), transparent 62%)", tc: "#3E72B6" },
+    cloud:  { top: "#566A7E", bot: "#34475A", glow: "radial-gradient(120% 90% at 20% -20%, rgba(255,255,255,.2), transparent 60%)", tc: "#566A7E" },
+    fog:    { top: "#5F6D7A", bot: "#3F4C58", glow: "radial-gradient(120% 90% at 50% -20%, rgba(255,255,255,.24), transparent 60%)", tc: "#5F6D7A" },
+    rain:   { top: "#3B5469", bot: "#1E3346", glow: "radial-gradient(120% 90% at 80% -20%, rgba(150,200,255,.2), transparent 60%)", tc: "#3B5469" },
+    storm:  { top: "#3A3E66", bot: "#1A1D3A", glow: "radial-gradient(120% 90% at 80% -20%, rgba(190,170,255,.22), transparent 60%)", tc: "#3A3E66" },
+    snow:   { top: "#4F6F94", bot: "#334F70", glow: "radial-gradient(120% 90% at 50% -20%, rgba(255,255,255,.26), transparent 60%)", tc: "#4F6F94" },
+    dawn:   { top: "#3D4689", bot: "#1B2150", glow: "radial-gradient(130% 80% at 50% 118%, rgba(255,168,120,.4), transparent 62%)", tc: "#3D4689" },
+    night:  { top: "#18234D", bot: "#0A1128", glow: "radial-gradient(110% 80% at 85% -10%, rgba(140,170,255,.2), transparent 62%)", tc: "#18234D" }
+  };
+  function wxGroup(code) {
+    if (code == null) return "cloud";
+    if (code === 0 || code === 1) return "clear";
+    if (code === 2) return "partly";
+    if (code === 3) return "cloud";
+    if (code === 45 || code === 48) return "fog";
+    if (code >= 95) return "storm";
+    if ((code >= 71 && code <= 77) || code === 85 || code === 86) return "snow";
+    if ((code >= 51 && code <= 67) || (code >= 80 && code <= 82)) return "rain";
+    return "cloud";
+  }
+  function phaseOf(nowMin, sun) {
+    var rise = sun ? toMin(sun.rise) : 360, set = sun ? toMin(sun.set) : 1050;
+    if (isNaN(rise)) rise = 360; if (isNaN(set)) set = 1050;
+    if (nowMin < rise - 40 || nowMin > set + 55) return "night";
+    if ((nowMin >= rise - 40 && nowMin < rise + 45) || (nowMin > set - 35 && nowMin <= set + 55)) return "dawn";
+    return "day";
+  }
+  function skyFor(code, nowMin, sun) {
+    var g = wxGroup(code), ph = phaseOf(nowMin, sun);
+    if (g === "rain" || g === "storm" || g === "snow") return { key: g, phase: ph };
+    if (ph === "night") return { key: "night", phase: ph };
+    if (ph === "dawn" && (g === "clear" || g === "partly")) return { key: "dawn", phase: ph };
+    return { key: g, phase: ph };
+  }
+  function wxIconName(code, phase) {
+    var g = wxGroup(code);
+    if (g === "clear") return phase === "night" ? "moon" : "sun";
+    return g === "partly" ? (phase === "night" ? "cloud" : "partly") : g;
+  }
+  function applySky(sk) {
+    var s = SKY[sk.key] || SKY.cloud, st = document.documentElement.style;
+    st.setProperty("--sky-top", s.top); st.setProperty("--sky-bot", s.bot); st.setProperty("--glow", s.glow);
+    var tc = document.querySelector('meta[name="theme-color"]'); if (tc) tc.setAttribute("content", s.tc);
+  }
 
   // ---------- 設定（網址 #api=…&k=…，或存在 localStorage）----------
   var API_RE = /^https:\/\/script\.google\.com\//i;
@@ -276,13 +455,13 @@ a:focus-visible, button:focus-visible, input:focus-visible { outline: 2px solid 
     var out = {};
     try {
       var sp = new URLSearchParams((location.hash || "").replace(/^#/, ""));
-      out.api = sp.get("api"); out.k = sp.get("k"); out.demo = sp.has("demo");
+      out.api = sp.get("api"); out.k = sp.get("k"); out.demo = sp.has("demo") ? (sp.get("demo") || "cloud") : "";
     } catch (e) { /* 舊瀏覽器 */ }
     return out;
   }
   function readConfig() {
     var hs = parseHash();
-    if (hs.demo) { state.demo = true; return null; }
+    if (hs.demo) { state.demo = hs.demo; return null; }
     if (hs.api || hs.k) {
       // 網址有帶就只用網址的（不與先前儲存的混用，避免把舊金鑰送去別的網址）
       if (hs.api && hs.k && API_RE.test(hs.api)) { var c = { api: hs.api.trim(), k: hs.k.trim() }; lsSet("brief.cfg", JSON.stringify(c)); return c; }
@@ -322,119 +501,191 @@ a:focus-visible, button:focus-visible, input:focus-visible { outline: 2px solid 
       document.head.appendChild(s);
     });
   }
-  function load(cfg) {
-    var url = cfg.api + (cfg.api.indexOf("?") < 0 ? "?" : "&") + "k=" + encodeURIComponent(cfg.k);
+  // 讀取與寫入共用：params 會一起帶在網址上（金鑰 k 一律附上）
+  function call(cfg, params) {
+    var q = Object.keys(params || {}).map(function (k) { return encodeURIComponent(k) + "=" + encodeURIComponent(params[k]); }).join("&");
+    var url = cfg.api + (cfg.api.indexOf("?") < 0 ? "?" : "&") + "k=" + encodeURIComponent(cfg.k) + (q ? "&" + q : "");
     return viaFetch(url).catch(function () { return viaJsonp(url); }).then(function (d) {
       if (!d || typeof d !== "object") throw new Error("bad");
-      if (d.ok === false) { var e = new Error(d.error || "error"); e.code = d.error === "unauthorized" ? "unauthorized" : "bad"; throw e; }
+      if (d.ok === false) { var e = new Error(d.error || "error"); e.code = d.error === "unauthorized" ? "unauthorized" : (d.error || "bad"); throw e; }
       return d;
     });
   }
 
-  // ---------- 畫面 ----------
-  function notice(msg, action) {
-    return h("div", { class: "notice", role: "status" }, icon("warn"), h("div", null, msg, action || null));
+  // ---------- 畫面：天空 ----------
+  function nowTemp(w, nowMin, isToday) {
+    var hs = w.hours || [];
+    if (!hs.length || !isToday) return null;
+    var hr = Math.floor(nowMin / 60), frac = (nowMin % 60) / 60, a = null, b = null;
+    hs.forEach(function (x) { if (x.h === hr) a = x; if (x.h === hr + 1) b = x; });
+    if (!a) return null;
+    return Math.round(b ? a.t + (b.t - a.t) * frac : a.t);
   }
-  function gapText(g) { return g === 0 ? "與上一場相接或重疊" : "與上一場只隔 " + g + " 分"; }
 
-  function buildStrip(data, nowMin, isToday) {
-    var w = data.weather || { rain: [], wind: [] }, evs = (data.events || []).filter(function (e) { return !e.allDay && e.s != null && e.e > T0 && e.s < T1; });
-    var rain = w.rain || [], wind = w.wind || [];
-    if (!rain.length && !wind.length && !evs.length) return null;
-
-    function pct(m) { return Math.max(0, Math.min(100, (m - T0) / SPAN * 100)); }
-    var bars = [], seq = 0;
-    function bar(cls, s, e, label, title, host, extra) {
-      var l = pct(s), r = pct(e), el = h("div", { class: "bar " + cls + (extra ? " " + extra : ""), title: title || null });
-      el.style.left = l + "%"; el.style.width = Math.max(r - l, 1.2) + "%"; el.style.setProperty("--i", seq++);
-      bars.push({ el: el, label: label, w: Math.max(r - l, 1.2) });
-      host.appendChild(el);
+  function smoothPath(pts) {
+    var d = "M" + pts[0][0].toFixed(1) + "," + pts[0][1].toFixed(1);
+    for (var i = 0; i < pts.length - 1; i++) {
+      var p0 = pts[i - 1] || pts[i], p1 = pts[i], p2 = pts[i + 1], p3 = pts[i + 2] || p2;
+      d += " C" + (p1[0] + (p2[0] - p0[0]) / 6).toFixed(1) + "," + (p1[1] + (p2[1] - p0[1]) / 6).toFixed(1) + " " +
+           (p2[0] - (p3[0] - p1[0]) / 6).toFixed(1) + "," + (p2[1] - (p3[1] - p1[1]) / 6).toFixed(1) + " " + p2[0].toFixed(1) + "," + p2[1].toFixed(1);
     }
+    return d;
+  }
+  var SVGNS = "http://www.w3.org/2000/svg";
+  function sv(tag, attrs, text) {
+    var el = document.createElementNS(SVGNS, tag);
+    if (attrs) Object.keys(attrs).forEach(function (k) { el.setAttribute(k, attrs[k]); });
+    if (text != null) el.textContent = text;
+    return el;
+  }
 
-    var axis = h("div", { class: "axis" });
-    [6, 9, 12, 15, 18, 21].forEach(function (hr, i) {
-      var sp = h("span", { text: String(hr), class: i === 0 ? "first" : null }); sp.style.left = pct(hr * 60) + "%"; axis.appendChild(sp);
-    });
-    var lanes = h("div", { class: "lanes" }), grid = h("div", { class: "grid" });
-    [9, 12, 15, 18, 21].forEach(function (hr) { var i = document.createElement("i"); i.style.left = pct(hr * 60) + "%"; grid.appendChild(i); });
-    lanes.appendChild(grid);
+  // 一整天的氣溫曲線 + 降雨機率柱；「現在」是沿著曲線走的太陽（夜裡是月亮）
+  function buildChart(w, nowMin, isToday, phase) {
+    var hrs = (w.hours || []).filter(function (x) { return x.h >= 6 && x.h <= 23; });
+    if (hrs.length < 8) return null;
+    var box = h("div", { class: "chart", "aria-hidden": "true" });
+    box.__draw = function () {
+      if (box.__w) box.classList.add("again");        // 第二次以後的重畫（旋轉、縮放）不再重播動畫
+      var W = box.clientWidth || 340; box.__w = W;
+      var H = 128, padX = 14, top = 30, curveBot = 70, base = H - 22;
+      var ts = hrs.map(function (x) { return x.t; }), tmin = Math.min.apply(null, ts), tmax = Math.max.apply(null, ts), span = Math.max(tmax - tmin, 3);
+      function X(hr) { return padX + (hr - 6) / 17 * (W - padX * 2); }
+      function Y(t) { return top + (1 - (t - tmin) / span) * (curveBot - top); }
+      var pts = hrs.map(function (x) { return [X(x.h), Y(x.t)]; });
+      var svg = sv("svg", { viewBox: "0 0 " + W + " " + H, width: W, height: H });
+      var uid = "c" + Math.random().toString(36).slice(2, 7);
+      var defs = sv("defs");
+      var gr = sv("linearGradient", { id: uid + "g", x1: 0, y1: 0, x2: 0, y2: 1 });
+      gr.appendChild(sv("stop", { offset: 0, "stop-color": "#fff", "stop-opacity": ".3" })); gr.appendChild(sv("stop", { offset: 1, "stop-color": "#fff", "stop-opacity": 0 }));
+      defs.appendChild(gr);
+      var nx = isToday ? X(Math.max(6, Math.min(23, nowMin / 60))) : null;
+      var cpast = sv("clipPath", { id: uid + "p" }); cpast.appendChild(sv("rect", { x: 0, y: 0, width: nx == null ? 0 : nx, height: H }));
+      var cfut = sv("clipPath", { id: uid + "f" }); cfut.appendChild(sv("rect", { x: nx == null ? 0 : nx, y: 0, width: W, height: H }));
+      defs.appendChild(cpast); defs.appendChild(cfut); svg.appendChild(defs);
 
-    if (rain.length) {
-      var lr = h("div", { class: "lane" }, h("b", { class: "lbl", text: "雨" }));
-      rain.forEach(function (x) { bar("rain", x.s * 60, x.e * 60, x.p + "%", "降雨機率 " + x.p + "%", lr); });
-      lanes.appendChild(lr);
-    }
-    if (wind.length) {
-      var lw = h("div", { class: "lane" }, h("b", { class: "lbl", text: "風" }));
-      wind.forEach(function (x) { bar("wind", x.s * 60, x.e * 60, x.lv + " 級", "陣風 " + x.v + " km/h", lw); });
-      lanes.appendChild(lw);
-    }
-    if (evs.length) {
-      var rows = [];
-      evs.slice().sort(function (a, b) { return a.s - b.s; }).forEach(function (e) {
-        var r = -1, i;
-        for (i = 0; i < rows.length; i++) if (rows[i] <= e.s) { r = i; break; }
-        if (r < 0) { if (rows.length < 3) { rows.push(0); r = rows.length - 1; } else r = 2; }
-        rows[r] = Math.max(rows[r], e.e); e.__row = r;
+      // 降雨機率柱（≥40% 的更亮、更高）
+      hrs.forEach(function (x) {
+        if (x.p < 15) return;
+        var bh = 4 + x.p / 100 * 28, bw = Math.max(5, (W - padX * 2) / 17 - 5);
+        svg.appendChild(sv("rect", { class: "rb", x: (X(x.h) - bw / 2).toFixed(1), y: (base - bh).toFixed(1), width: bw.toFixed(1), height: bh.toFixed(1), rx: 2.5, opacity: x.p >= 40 ? ".95" : ".38" }));
       });
-      var le = h("div", { class: "lane ev" }, h("b", { class: "lbl", text: "行程" })), subs = [];
-      rows.forEach(function () { var s = h("div", { class: "subl" }); subs.push(s); le.appendChild(s); });
-      evs.forEach(function (e) { bar("evt", Math.max(e.s, T0), Math.min(e.e, T1), e.title, e.time + " " + e.title, subs[e.__row], e.tight ? "tight" : ""); });
-      lanes.appendChild(le);
-    }
-    if (isToday && nowMin >= T0 && nowMin < T1) {
-      var gone = h("div", { class: "elapsed" }), now = h("div", { class: "now" });
-      gone.style.width = pct(nowMin) + "%"; now.style.left = pct(nowMin) + "%";
-      lanes.appendChild(gone); lanes.appendChild(now);
-    }
-    var strip = h("div", { class: "strip", "aria-hidden": "true" }, axis, lanes);
-    strip.__layout = function () {   // 條夠寬才放文字，避免擠成殘字
-      var W = lanes.clientWidth;
-      bars.forEach(function (b) { b.el.textContent = W * b.w / 100 >= 58 ? b.label : ""; });
+      svg.appendChild(sv("line", { x1: padX, x2: W - padX, y1: base + .5, y2: base + .5, stroke: "rgba(255,255,255,.3)", "stroke-width": 1 }));
+      [6, 9, 12, 15, 18, 21].forEach(function (hr) { svg.appendChild(sv("text", { class: "tkx", x: X(hr).toFixed(1), y: H - 6, "text-anchor": "middle" }, String(hr))); });
+
+      var line = smoothPath(pts), area = line + " L" + pts[pts.length - 1][0].toFixed(1) + "," + base + " L" + pts[0][0].toFixed(1) + "," + base + " Z";
+      svg.appendChild(sv("path", { class: "area", d: area, fill: "url(#" + uid + "g)", opacity: .9 }));
+      var lens = [];
+      function ln(clip, cls) { var p = sv("path", { class: "ln " + cls, d: line, "clip-path": "url(#" + clip + ")" }); svg.appendChild(p); lens.push(p); }
+      if (isToday) { ln(uid + "p", "past"); ln(uid + "f", "fut"); } else ln(uid + "f", "fut");
+
+      // 最高、最低溫標示
+      var iMax = ts.indexOf(tmax), iMin = ts.indexOf(tmin);
+      function lbl(i, txt, dy) { svg.appendChild(sv("text", { x: pts[i][0].toFixed(1), y: (pts[i][1] + dy).toFixed(1), "text-anchor": "middle" }, txt)); }
+      lbl(iMax, Math.round(tmax) + "°", -9);
+      if (Math.abs(pts[iMin][0] - pts[iMax][0]) > 34 && tmax - tmin >= 2) lbl(iMin, Math.round(tmin) + "°", -9);
+
+      // 現在：沿曲線的太陽／月亮
+      if (isToday) {
+        var fh = Math.max(6, Math.min(23, nowMin / 60)), i0 = Math.min(hrs.length - 2, Math.max(0, Math.floor(fh) - 6)), a = pts[i0], b = pts[i0 + 1], f = Math.max(0, Math.min(1, (nx - a[0]) / Math.max(1, b[0] - a[0])));
+        var ny = a[1] + (b[1] - a[1]) * f, g = sv("g", { class: "orb" });
+        g.appendChild(sv("line", { class: "guide", x1: nx.toFixed(1), x2: nx.toFixed(1), y1: (ny + 10).toFixed(1), y2: base }));
+        if (phase === "night") {
+          g.appendChild(sv("circle", { cx: nx.toFixed(1), cy: ny.toFixed(1), r: 14, fill: "rgba(200,215,255,.22)" }));
+          g.appendChild(sv("circle", { cx: nx.toFixed(1), cy: ny.toFixed(1), r: 7, fill: "#EAF0FF" }));
+          g.appendChild(sv("circle", { cx: (nx + 3).toFixed(1), cy: (ny - 2).toFixed(1), r: 6, fill: SKY.night.top, opacity: .0 }));
+        } else {
+          g.appendChild(sv("circle", { cx: nx.toFixed(1), cy: ny.toFixed(1), r: 17, fill: "rgba(255,214,102,.28)" }));
+          g.appendChild(sv("circle", { cx: nx.toFixed(1), cy: ny.toFixed(1), r: 7.5, fill: "#FFD66B", stroke: "#fff", "stroke-width": 2 }));
+        }
+        svg.appendChild(g);
+      }
+      box.textContent = ""; box.appendChild(svg);
+      lens.forEach(function (p) { var L = 2200; try { L = Math.ceil(p.getTotalLength()) + 4; } catch (e) { /* 舊瀏覽器 */ } p.style.setProperty("--len", L); });
     };
-    return strip;
+    return box;
   }
 
-  function buildWeather(data, nowMin, isToday) {
-    var w = data.weather, panel = h("div", { class: "panel" });
-    if (!w) { panel.appendChild(h("p", { class: "note", text: "天氣暫時讀不到，稍後再按「重新整理」。" })); return { el: panel }; }
-    var sub = (w.place ? w.place + "　" : "") + "降雨機率最高 " + w.popMax + "%";
-    panel.appendChild(h("div", { class: "wx" },
-      h("div", { class: "wx-ico", "aria-hidden": "true", text: w.icon || "🌡️" }),
-      h("div", null, h("div", { class: "wx-main", text: w.desc + "　" + w.tmin + "–" + w.tmax + "°C" }), h("div", { class: "wx-sub", text: sub }))));
-    var strip = buildStrip(data, nowMin, isToday);
-    if (strip) panel.appendChild(strip);
-    var ul = h("ul", { class: "alerts" });
+  function buildHero(data, tp, isToday) {
+    var w = data && data.weather, nowMin = isToday ? tp.min : 12 * 60, code = w ? w.code : null;
+    var sk = skyFor(code, nowMin, w && w.sun);
+    applySky(sk);
+    var dateStr = data ? data.date : tp.date, p = dateStr.split("-");
+    var top = h("div", { class: "top" },
+      h("span", { class: "d", text: +p[1] + "月" + +p[2] + "日　週" + weekdayOf(dateStr) }),
+      h("div", { class: "btns" },
+        state.demo ? null : h("button", { class: "gbtn", type: "button", "aria-label": "重新整理", disabled: state.busy, onclick: function () { refresh(true); } }, ico("refresh")),
+        h("button", { class: "gbtn", type: "button", "aria-label": "設定", onclick: openSettings }, ico("sliders"))));
+    var hero = h("header", { class: "hero" }), inn = h("div", { class: "hero-in" }, top, h("h1", { class: "hi", text: greeting(tp.hour) }));
+    hero.appendChild(inn);
+    var chart = null;
+    if (!w) {
+      inn.appendChild(h("p", { class: "meta", text: data ? "天氣暫時讀不到，稍後再按重新整理。" : (state.busy ? "正在載入今天的簡報…" : "") }));
+      return { el: hero };
+    }
+    var nt = nowTemp(w, nowMin, isToday), big = nt != null ? nt : w.tmax;
+    var gname = wxIconName(code, sk.phase);
+    inn.appendChild(h("div", { class: "hnow" },
+      h("div", { class: "deg", "aria-label": (nt != null ? "現在 " : "最高 ") + big + " 度" }, String(big), h("sup", { text: "°" })),
+      h("div", { class: "cond" }, ico(gname), h("b", { text: w.desc }))));
+    inn.appendChild(h("div", { class: "meta" },
+      h("span", { text: w.place || "" }),
+      h("span", { text: "今日 " + w.tmin + "–" + w.tmax + "°" }),
+      h("span", { text: "降雨機率 " + w.popMax + "%" })));
+    chart = buildChart(w, nowMin, isToday, sk.phase);
+    if (chart) inn.appendChild(chart);
+    var ul = h("ul", { class: "al" });
     if (w.stable || !w.alerts || !w.alerts.length) {
-      ul.appendChild(h("li", { class: "alert ok" }, h("span", { class: "badge" }, icon("check")), h("span", { class: "txt", text: "天氣穩定，不需要特別準備。" })));
+      ul.appendChild(h("li", null, ico("check"), h("span", { class: "txt", text: "天氣穩定，不需要特別準備。" })));
     } else {
       w.alerts.forEach(function (a) {
-        var k = a.kind === "rain" || a.kind === "wind" ? a.kind : "layers";
-        ul.appendChild(h("li", { class: "alert " + k }, h("span", { class: "badge" }, icon(k)), h("span", { class: "txt", text: a.text })));
+        var k = a.kind === "rain" ? "umbrella" : a.kind === "wind" ? "wind" : "layers";
+        ul.appendChild(h("li", null, ico(k), h("span", { class: "txt", text: a.text })));
       });
     }
-    panel.appendChild(ul);
-    return { el: panel, strip: strip };
+    inn.appendChild(ul);
+    return { el: hero, chart: chart };
   }
 
+  // ---------- 畫面：內容 ----------
+  function notice(msg, action) { return h("div", { class: "notice", role: "status" }, ico("warn"), h("div", null, msg, action || null)); }
+  function gapText(g) { return g === 0 ? "與上一場相接或重疊" : "與上一場只隔 " + g + " 分"; }
+  function secHead(title, extra, action) { return h("div", { class: "sh" }, h("h2", null, title, extra || null), action || null); }
+
   function buildEvents(data, nowMin, isToday) {
-    var sec = h("section", { class: "sec" }, h("h2", { text: "今天行程" }));
-    if (!data.events) { sec.appendChild(h("p", { class: "note", text: "日曆暫時讀不到。稍後再試；若一直失敗，請確認 Apps Script 已授權日曆。" })); return sec; }
-    if (!data.events.length) { sec.appendChild(h("p", { class: "empty", text: "今天沒有行程。" })); return sec; }
-    var ol = h("ol", { class: "route" }), lis = [];
-    data.events.forEach(function (e, i) {
-      var past = isToday && !e.allDay && e.e != null && e.e <= nowMin;
-      var li = h("li", { class: "stop" + (e.allDay ? " allday" : "") + (e.tight ? " tight" : "") + (past ? " past" : "") },
-        h("span", { class: "t", text: e.time }),
-        h("span", { class: "node", "aria-hidden": "true" }),
-        h("div", null,
-          h("div", { class: "ttl", text: e.title }),
-          e.location ? h("div", { class: "loc", text: e.location }) : null,
-          e.tight ? h("div", { class: "gaprow" }, h("span", { class: "gapchip" }, icon("warn"), "交通緩衝緊湊"), h("span", { class: "gaptxt", text: gapText(e.gap) })) : null));
-      lis.push(li); ol.appendChild(li);
-    });
-    lis.forEach(function (li, i) { if (i < lis.length - 1 && data.events[i + 1].tight) li.classList.add("tightnext"); });
-    sec.appendChild(ol);
+    var hasIcs = data.settings && data.settings.ics && data.settings.ics.length;
+    var cal = h("a", { class: "link", href: calshow(data.date, isToday ? Math.max(0, nowMin) : 0), "aria-label": "在 iPhone 行事曆開啟" }, ico("calendar"), "行事曆");
+    var sec = h("section", { class: "sec" }, secHead("今天行程", null, cal));
+    if (!data.events) { sec.appendChild(h("p", { class: "note", text: "行事曆暫時讀不到。稍後再按重新整理。" })); return sec; }
+    var icsFail = (data.errors || []).indexOf("ics") >= 0;
+    if (!data.events.length) {
+      var box = h("div", { class: "empty" }, h("span", null, h("b", { text: "今天沒有行程。" })));
+      if (!hasIcs) {
+        box.appendChild(h("span", { text: "行程沒出現？把 iPhone 內建的行事曆連結進來就會顯示。" }));
+        box.appendChild(h("button", { class: "pillbtn", type: "button", onclick: openSettings }, ico("calendar"), "連結 iPhone 行事曆"));
+      }
+      sec.appendChild(box);
+      if (icsFail) sec.appendChild(h("p", { class: "note", style: "margin-top:10px", text: "iPhone 行事曆連結讀取失敗，請到設定確認連結仍有效。" }));
+      return sec;
+    }
+    var all = data.events.filter(function (e) { return e.allDay; }), timed = data.events.filter(function (e) { return !e.allDay; });
+    if (all.length) sec.appendChild(h("div", { class: "allday" }, all.map(function (e) { return h("span", { class: "pill" }, h("i", { text: "全天" }), e.title); })));
+    if (timed.length) {
+      var ol = h("div", { class: "route" }), els = [], nextIdx = -1;
+      if (isToday) timed.forEach(function (e, i) { if (nextIdx < 0 && e.s > nowMin) nextIdx = i; });
+      timed.forEach(function (e, i) {
+        var past = isToday && e.e != null && e.e <= nowMin, live = isToday && e.s <= nowMin && e.e > nowMin;
+        var ttl = h("div", { class: "ttl" }, e.title, live ? h("span", { class: "tag now", text: "進行中" }) : i === nextIdx ? h("span", { class: "tag next", text: "下一場" }) : null);
+        var el = h("a", { class: "ev" + (e.tight ? " tight" : "") + (past ? " past" : "") + (live ? " now" : ""), href: calshow(data.date, e.s || 0) },
+          h("div", { class: "t" }, e.time === "延續" ? "延續" : e.time, e.e != null ? h("small", { text: "–" + mmText(e.e) }) : null),
+          h("i", { class: "node", "aria-hidden": "true" }),
+          h("div", null, ttl,
+            e.location ? h("div", { class: "loc" }, ico("pin"), e.location) : null,
+            e.tight ? h("div", { class: "gaprow" }, h("span", { class: "gapchip" }, ico("warn"), "交通緩衝緊湊"), h("span", { class: "gaptxt", text: gapText(e.gap) })) : null));
+        els.push(el); ol.appendChild(el);
+      });
+      els.forEach(function (el, i) { if (i < els.length - 1 && timed[i + 1].tight) el.classList.add("tn"); });
+      sec.appendChild(ol);
+    }
     return sec;
   }
 
@@ -442,14 +693,13 @@ a:focus-visible, button:focus-visible, input:focus-visible { outline: 2px solid 
     var td = data.todo, failed = (data.errors || []).indexOf("todo") >= 0;
     if (!td && !failed) return null;                       // 後端沒設定待辦來源 → 整區不顯示
     var sec = h("section", { class: "sec" });
-    if (!td) { sec.appendChild(h("h2", { text: "待辦" })); sec.appendChild(h("p", { class: "note", text: "待辦暫時讀不到。稍後再按「重新整理」。" })); return sec; }
+    if (!td) { sec.appendChild(secHead("待辦")); sec.appendChild(h("p", { class: "note", text: "待辦暫時讀不到。稍後再按重新整理。" })); return sec; }
     var done = jget("brief.done", {}), today = data.date, total = td.items.length, doneN = 0;
-    var head = h("h2", { text: "待辦" }), count = h("small");
-    head.appendChild(count);
-    sec.appendChild(head);
+    var count = h("small"), fill = h("i"), meter = h("span", { class: "bar", "aria-hidden": "true" }, fill);
+    sec.appendChild(secHead("待辦", [count, total ? meter : null]));
     if (!total) { sec.appendChild(h("p", { class: "empty", text: "目前沒有待辦。" })); return sec; }
     var box = h("div", { class: "todo" });
-    function refreshCount() { count.textContent = doneN + " / " + total + " 完成"; }
+    function refreshCount() { count.textContent = doneN + " / " + total; fill.style.width = (total ? doneN / total * 100 : 0) + "%"; }
     td.items.forEach(function (t) {
       var key = today + "|" + t, on = !!done[key], cb = h("input", { type: "checkbox" }), lab = h("label", { class: on ? "done" : null }, cb, h("span", { text: t }));
       cb.checked = on; if (on) doneN++;
@@ -473,80 +723,222 @@ a:focus-visible, button:focus-visible, input:focus-visible { outline: 2px solid 
     return sec;
   }
 
+  function fmtDateZh(ymd) { var p = ymd.split("-"); return p[0] + "年" + +p[1] + "月" + +p[2] + "日"; }
   function buildCountdown(data) {
-    if (!data.countdown || !data.countdown.length) return null;
-    var row = h("div", { class: "cd" });
-    data.countdown.forEach(function (c) {
-      row.appendChild(h("div", null,
-        c.days === 0 ? h("b", { text: "今天" }) : h("span", null, h("b", { text: String(c.days) }), h("span", { class: "u", text: "天" })),
-        h("div", { class: "nm", text: c.name })));
+    var list = data.countdown || [];
+    var sec = h("section", { class: "sec" }, secHead("倒數日", null, h("button", { class: "link", type: "button", onclick: function () { openCountdown(null); } }, ico("plus"), "新增")));
+    var row = h("div", { class: "tickets" });
+    list.forEach(function (c) {
+      var past = c.days < 0, cls = "tk" + (past ? " past" : c.days === 0 ? " today" : c.days <= SOON_DAYS ? " soon" : "");
+      var num = past ? h("div", { class: "num day0" }, "已過 " + (-c.days), h("small", { text: "天" })) :
+        c.days === 0 ? h("div", { class: "num" }, "今天") : h("div", { class: "num" }, String(c.days), h("small", { text: "天" }));
+      var p = (c.repeat === "yearly" ? c.target : c.date).split("-");
+      var dt = c.repeat === "yearly" ? h("div", { class: "dt" }, ico("repeat"), "每年 " + +p[1] + "月" + +p[2] + "日") : h("div", { class: "dt", text: fmtDateZh(c.date) });
+      row.appendChild(h("button", { class: cls, type: "button", "aria-label": "編輯 " + c.name + "，" + (past ? "已過 " + (-c.days) + " 天" : c.days === 0 ? "今天" : "還有 " + c.days + " 天"), onclick: function () { openCountdown(c); } },
+        h("div", { class: "top" }, num), h("div", { class: "bot" }, h("div", { class: "nm", text: c.name }), dt)));
     });
-    return h("section", { class: "sec" }, h("h2", { text: "倒數日" }), row);
-  }
-
-  function buildNews(data) {
-    var sec = h("section", { class: "sec news" }, h("h2", { text: "新聞" }));
-    if (!data.news) { sec.appendChild(h("p", { class: "note", text: "新聞暫時讀不到。稍後再按「重新整理」。" })); return sec; }
-    data.news.forEach(function (c) {
-      sec.appendChild(h("h3", { text: (c.emoji ? c.emoji + " " : "") + c.name }));
-      var items = (c.items || []).filter(function (n) { return isHttp(n.url); });
-      if (!c.ok) { sec.appendChild(h("p", { class: "note", text: "這個分類的來源暫時抓不到。" })); return; }
-      if (!items.length) { sec.appendChild(h("p", { class: "note", text: "今天沒有符合條件的新聞。" })); return; }
-      var ul = h("ul");
-      items.forEach(function (n) {
-        ul.appendChild(h("li", null, h("a", { href: n.url, target: "_blank", rel: "noopener noreferrer" },
-          h("div", { class: "nt", text: n.title }), h("div", { class: "ns", text: n.source || "" }))));
-      });
-      sec.appendChild(ul);
-    });
+    row.appendChild(h("button", { class: "tk add", type: "button", onclick: function () { openCountdown(null); } }, ico("plus"), "新增倒數日"));
+    sec.appendChild(row);
     return sec;
   }
 
-  function buildFoot() {
-    var label = state.busy ? "更新中…" : state.demo ? "示範資料" : state.at ? "更新於 " + hhmm(state.at) : "";
-    return h("div", { class: "foot" }, h("span", { text: label }),
-      h("div", { class: "btns" },
-        state.demo ? null : h("button", { class: "ghost", type: "button", disabled: state.busy, text: "重新整理", onclick: refresh }),
-        h("button", { class: "ghost", type: "button", text: "設定", onclick: function () { state.view = "settings"; render(); } })));
+  var SRC_COLOR = { "TVBS": "#2F6FDB", "台視": "#D9423A", "公視": "#2E8B6A", "BBC": "#8A5CF5", "NHK": "#0E9AA7", "CNN": "#C8102E" };
+  function buildNews(data) {
+    var sec = h("section", { class: "sec" }, secHead("新聞"));
+    if (!data.news) { sec.appendChild(h("p", { class: "note", text: "新聞暫時讀不到。稍後再按重新整理。" })); return sec; }
+    data.news.forEach(function (c) {
+      var items = (c.items || []).filter(function (n) { return isHttp(n.url); });
+      var cat = h("div", { class: "ncat" }, h("h3", null, c.name, items.length ? h("small", { text: items.length + " 則" }) : null));
+      if (!c.ok) cat.appendChild(h("p", { class: "note", text: "這個分類的來源暫時抓不到。" }));
+      else if (!items.length) cat.appendChild(h("p", { class: "note", text: "今天沒有符合條件的新聞。" }));
+      else {
+        var ul = h("ul");
+        items.forEach(function (n) {
+          var dot = h("i"); dot.style.setProperty("--c", SRC_COLOR[n.source] || "#7B8794");
+          ul.appendChild(h("li", null, h("a", { href: n.url, target: "_blank", rel: "noopener noreferrer", title: n.en || null },
+            h("div", { class: "nt", text: n.title }),
+            h("div", { class: "ns" }, dot, h("span", { text: n.source || "" }), n.tr ? h("span", { class: "tr", text: "譯" }) : null))));
+        });
+        cat.appendChild(ul);
+      }
+      sec.appendChild(cat);
+    });
+    return sec;
   }
 
   function render() {
     var y = window.scrollY;
     root.textContent = "";
-    root.classList.toggle("still", state.animated);
     if (state.view === "settings" || !(state.cfg || state.demo)) { renderSetup(); return; }
-
-    var tp = nowTP(), d = state.data;
-    var frag = document.createDocumentFragment();
-    frag.appendChild(h("h1", { class: "hello", text: greeting(tp.hour) }));
-    var dateStr = d ? d.date : tp.date, p = dateStr.split("-");
-    frag.appendChild(h("p", { class: "date", text: +p[1] + "月" + +p[2] + "日　週" + weekdayOf(dateStr) }));
+    var tp = nowTP(), d = state.data, isToday = !d || d.date === tp.date;
+    var hero = buildHero(d, tp, isToday), main = h("div", { class: "main" });
+    root.className = state.animated ? "" : "draw";
+    root.appendChild(hero.el); root.appendChild(main);
 
     if (state.error) {
       var e = state.error, msg, act = null;
-      if (e.code === "unauthorized") { msg = "金鑰不正確，後端拒絕了這個請求。"; act = h("button", { class: "ghost", type: "button", text: "重新輸入金鑰", onclick: function () { state.view = "settings"; render(); } }); }
+      if (e.code === "unauthorized") { msg = "金鑰不正確，後端拒絕了這個請求。"; act = h("button", { class: "pillbtn", type: "button", onclick: openSettings }, "重新輸入金鑰"); }
       else msg = (d ? "更新失敗，顯示的是 " + hhmm(state.at) + " 的內容。" : "連不上後端。") + "請確認手機有網路；若一直失敗，檢查 Apps Script 部署的存取權限是否為「任何人」。";
-      frag.appendChild(notice(msg, act));
+      main.appendChild(notice(msg, act));
     }
-    if (!d) {
-      if (!state.error) frag.appendChild(h("p", { class: "load", text: state.busy ? "正在載入今天的簡報…" : "" }));
-      frag.appendChild(buildFoot());
-      root.appendChild(frag);
-      return;
-    }
-    var isToday = d.date === tp.date, wx = buildWeather(d, tp.min, isToday);
-    frag.appendChild(wx.el);
-    frag.appendChild(buildEvents(d, tp.min, isToday));
-    [buildTodo(d), buildCountdown(d), buildNews(d)].forEach(function (s) { if (s) frag.appendChild(s); });
-    frag.appendChild(buildFoot());
-    root.appendChild(frag);
-    if (wx.strip) { wx.strip.__layout(); layoutStrip = wx.strip.__layout; } else layoutStrip = null;
+    if (!d) { if (!state.error) main.appendChild(h("p", { class: "load", text: state.busy ? "" : "" })); return; }
+    main.appendChild(buildEvents(d, tp.min, isToday));
+    [buildTodo(d), buildCountdown(d), buildNews(d)].forEach(function (s) { if (s) main.appendChild(s); });
+    main.appendChild(h("p", { class: "foot", text: state.busy ? "更新中…" : state.demo ? "示範資料" : state.at ? "更新於 " + hhmm(state.at) : "" }));
+    if (hero.chart) { hero.chart.__draw(); layoutChart = hero.chart.__draw; } else layoutChart = null;
     state.animated = true;
     window.scrollTo(0, y);
   }
-  var layoutStrip = null, raf = 0;
-  window.addEventListener("resize", function () { if (raf) return; raf = requestAnimationFrame(function () { raf = 0; if (layoutStrip) layoutStrip(); }); });
+  var layoutChart = null, raf = 0;
+  window.addEventListener("resize", function () { if (raf) return; raf = requestAnimationFrame(function () { raf = 0; var el = document.querySelector(".chart"); if (layoutChart && el && el.clientWidth !== el.__w) layoutChart(); }); });
 
+  // ---------- 彈出面板 ----------
+  function closeSheet(immediate) {
+    sheetRoot.classList.remove("open"); document.body.classList.remove("lock");
+    setTimeout(function () { if (!sheetRoot.classList.contains("open")) sheetRoot.textContent = ""; }, immediate === true ? 0 : 320);
+  }
+  function openSheet(title, build) {
+    sheetRoot.textContent = "";
+    var back = h("div", { class: "back", onclick: closeSheet });
+    var sheet = h("div", { class: "sheet", role: "dialog", "aria-modal": "true", "aria-label": title },
+      h("div", { class: "grip" }),
+      h("div", { class: "sh-head" }, h("h2", { text: title }), h("button", { class: "x", type: "button", "aria-label": "關閉", onclick: closeSheet }, ico("x"))));
+    sheet.appendChild(build());
+    sheetRoot.appendChild(back); sheetRoot.appendChild(sheet);
+    document.body.classList.add("lock");
+    requestAnimationFrame(function () { requestAnimationFrame(function () { sheetRoot.classList.add("open"); }); });
+    return sheet;
+  }
+  document.addEventListener("keydown", function (e) { if (e.key === "Escape" && sheetRoot.classList.contains("open")) closeSheet(); });
+
+  // 倒數日：新增／編輯
+  function openCountdown(item) {
+    var editing = !!item, today = nowTP().date;
+    var name = h("input", { type: "text", maxlength: "20", placeholder: "例如：小明生日", autocomplete: "off", enterkeyhint: "done" });
+    var date = h("input", { type: "date", min: "1900-01-01", max: "2100-12-31" });
+    var rep = h("input", { type: "checkbox", role: "switch" });
+    var err = h("p", { class: "err", role: "alert" }); err.style.display = "none";
+    if (editing) { name.value = item.name; date.value = item.date; rep.checked = item.repeat === "yearly"; }
+    function fail(m) { err.textContent = m; err.style.display = ""; }
+    function save() {
+      var n = name.value.trim(), d = date.value;
+      if (!n) { fail("請輸入名稱。"); name.focus(); return; }
+      if (!/^\d{4}-\d{2}-\d{2}$/.test(d)) { fail("請選擇日期。"); return; }
+      var list = cdPlain(state.data.countdown || []), rec = { id: editing ? item.id : newId(), name: n, date: d, repeat: rep.checked ? "yearly" : "" };
+      if (editing) list = list.map(function (c) { return c.id === item.id ? rec : c; }); else list.push(rec);
+      if (list.length > 20) { fail("最多 20 個倒數日。"); return; }
+      closeSheet(); saveCountdown(list, editing ? "已更新" : "已新增");
+    }
+    return openSheet(editing ? "編輯倒數日" : "新增倒數日", function () {
+      var form = h("form", { novalidate: true },
+        h("label", { class: "fld" }, "名稱", name),
+        h("label", { class: "fld" }, "日期", date),
+        h("label", { class: "sw" }, h("span", null, "每年重複", h("small", { text: "生日、紀念日用；過了今年就算明年的" })), rep),
+        err,
+        h("div", { class: "acts" },
+          h("button", { class: "btn pri", type: "submit", text: "儲存" }),
+          editing ? h("button", { class: "btn dng", type: "button", text: "刪除", onclick: function () {
+            var list = cdPlain(state.data.countdown || []).filter(function (c) { return c.id !== item.id; });
+            closeSheet(); saveCountdown(list, "已刪除");
+          } }) : null));
+      form.addEventListener("submit", function (ev) { ev.preventDefault(); save(); });
+      if (!editing) setTimeout(function () { try { name.focus(); } catch (e) { /* 忽略 */ } }, 350);
+      return form;
+    });
+  }
+
+  function saveCountdown(list, okMsg) {
+    var d = state.data, before = d.countdown, today = d.date;
+    d.countdown = cdView(list, today); render(); lsSet("brief.cache", JSON.stringify({ at: state.at, data: d }));   // 先畫出來，再送出
+    if (state.demo) { toast(okMsg + "（示範模式不會儲存）"); return; }
+    call(state.cfg, { action: "setCountdown", data: JSON.stringify(list) }).then(function (r) {
+      if (r && Array.isArray(r.countdown)) { state.data.countdown = r.countdown; lsSet("brief.cache", JSON.stringify({ at: state.at, data: state.data })); render(); }
+      toast(okMsg);
+    }).catch(function (e) {
+      state.data.countdown = before; render(); lsSet("brief.cache", JSON.stringify({ at: state.at, data: state.data }));
+      toast(e && e.code === "unauthorized" ? "金鑰不正確，沒有儲存" : "儲存失敗，已還原。請確認網路後再試");
+    });
+  }
+
+  // 設定：iPhone 行事曆連結、後端連線
+  function openSettings() {
+    if (state.view === "settings") return;
+    var d = state.data, cfg = state.cfg || jget("brief.cfg", null) || {};
+    return openSheet("設定", function () {
+      var wrap = h("div");
+
+      // ① iPhone 行事曆
+      var list = h("div"), msg = h("p", { class: "okmsg" }); msg.style.display = "none";
+      var url = h("input", { type: "url", placeholder: "webcal://p12-caldav.icloud.com/published/…", autocomplete: "off", autocapitalize: "off", spellcheck: "false", inputmode: "url" });
+      var addBtn = h("button", { class: "btn pri", type: "button", text: "連結" });
+      function icsList() { return (state.data && state.data.settings && state.data.settings.ics) || []; }
+      function drawList() {
+        list.textContent = "";
+        icsList().forEach(function (x) {
+          list.appendChild(h("div", { class: "lnk" }, h("span", { text: x.host + " … " + x.tail }),
+            h("button", { type: "button", text: "移除", onclick: function () { removeIcs(x); } })));
+        });
+      }
+      function say(text, bad) { msg.textContent = text; msg.style.display = text ? "" : "none"; msg.className = bad ? "err" : "okmsg"; msg.style.margin = bad ? "8px 0 0" : ""; }
+      function removeIcs(x) {
+        if (state.demo) { say("示範模式不會變更。", true); return; }
+        call(state.cfg, { action: "icsRemove", i: x.i, t: x.tail }).then(function (r) {
+          state.data.settings = state.data.settings || {}; state.data.settings.ics = r.ics || []; drawList(); say("已移除。"); refresh(true);
+        }).catch(function () { say("移除失敗，請稍後再試。", true); });
+      }
+      addBtn.addEventListener("click", function () {
+        var u = url.value.trim();
+        if (!u) { say("請先貼上連結。", true); return; }
+        if (!/^(webcals?|https):\/\//i.test(u)) { say("連結要以 webcal:// 或 https:// 開頭。", true); return; }
+        if (state.demo) { say("示範模式不會連結。", true); return; }
+        addBtn.disabled = true; say("正在確認連結…");
+        call(state.cfg, { action: "icsAdd", url: u }).then(function (r) {
+          state.data.settings = state.data.settings || {}; state.data.settings.ics = r.ics || []; drawList(); url.value = "";
+          say(r.found ? "已連結。這個行事曆共 " + r.found.total + " 筆行程，今天有 " + r.found.today + " 筆。" : "這個連結已經連過了。");
+          refresh(true);
+        }).catch(function (e) {
+          var m = { bad_url: "這不是有效的行事曆連結。", not_ics: "讀不到行事曆內容。請確認已開啟「公開行事曆」，再重貼一次。", too_many: "最多連結 5 個行事曆，請先移除一個。" }[e && e.code];
+          say(m || "連結失敗，請稍後再試。", true);
+        }).then(function () { addBtn.disabled = false; });
+      });
+      drawList();
+      wrap.appendChild(h("section", { class: "grp" },
+        h("h3", { text: "iPhone 行事曆" }),
+        h("p", { text: "貼上 iPhone 內建行事曆的公開連結，今天的行程就會出現在這裡。若你的 iPhone 行事曆本來就同步 Google 帳號，不用另外連結。" }),
+        h("details", { open: !icsList().length }, h("summary", { text: "怎麼取得連結？" }),
+          h("ol", null,
+            h("li", { text: "打開 iPhone 的「行事曆」App，點下方的「行事曆」。" }),
+            h("li", { text: "點要顯示的那個行事曆右邊的 ⓘ。" }),
+            h("li", { text: "打開「公開行事曆」，點「分享連結」→「拷貝」。" }),
+            h("li", { text: "回到這裡，把連結貼在下面。" }))),
+        list,
+        h("div", { class: "row2" }, h("label", { class: "fld" }, "行事曆連結", url), addBtn),
+        msg,
+        h("p", { class: "warnnote", text: "知道這個連結的人都能看到該行事曆的內容，請不要轉貼。" })));
+
+      // ② 後端連線
+      var api = h("input", { type: "url", placeholder: "https://script.google.com/macros/s/…/exec", autocomplete: "off", autocapitalize: "off", spellcheck: "false", inputmode: "url" });
+      var key = h("input", { type: "text", placeholder: "指令碼屬性裡的 TOKEN", autocomplete: "off", autocapitalize: "off", autocorrect: "off", spellcheck: "false" });
+      api.value = cfg.api || ""; key.value = cfg.k || "";
+      var cerr = h("p", { class: "err", role: "alert" }); cerr.style.display = "none";
+      var save = h("button", { class: "btn", type: "button", text: "儲存並重新載入" });
+      save.addEventListener("click", function () {
+        var a = api.value.trim(), k = key.value.trim();
+        if (!API_RE.test(a) || !/\/exec(\?.*)?$/.test(a)) { cerr.textContent = "網址要以 https://script.google.com/ 開頭、/exec 結尾。"; cerr.style.display = ""; return; }
+        if (!k) { cerr.textContent = "請輸入金鑰。"; cerr.style.display = ""; return; }
+        state.cfg = { api: a, k: k }; state.setupMsg = ""; state.error = null; state.demo = "";
+        lsSet("brief.cfg", JSON.stringify(state.cfg)); pinHash(state.cfg);
+        state.data = null; state.at = 0; state.animated = false; closeSheet(); refresh(true);
+      });
+      wrap.appendChild(h("section", { class: "grp" },
+        h("h3", { text: "後端連線" }),
+        h("details", null, h("summary", { text: "網址與金鑰" }),
+          h("div", { style: "margin-top:12px" }, h("label", { class: "fld" }, "後端網址", api), h("label", { class: "fld" }, "金鑰（TOKEN）", key), cerr, save))));
+      return wrap;
+    });
+  }
+
+  // 第一次使用：連接後端
   function renderSetup() {
     var cfg = state.cfg || jget("brief.cfg", null) || {};
     var api = h("input", { type: "url", name: "api", placeholder: "https://script.google.com/macros/s/…/exec", autocomplete: "off", autocapitalize: "off", spellcheck: "false", inputmode: "url" });
@@ -557,12 +949,12 @@ a:focus-visible, button:focus-visible, input:focus-visible { outline: 2px solid 
     var form = h("form", { class: "setup", novalidate: true },
       h("h1", { text: "連接後端" }),
       h("p", { text: "貼上 Apps Script 部署後的網址與金鑰。設定只存在這支手機的瀏覽器裡。" }),
-      h("label", null, "後端網址", api),
-      h("label", null, "金鑰（TOKEN）", key),
+      h("label", { class: "fld" }, "後端網址", api),
+      h("label", { class: "fld" }, "金鑰（TOKEN）", key),
       err,
-      h("div", { class: "row" },
-        h("button", { class: "solid", type: "submit", text: "儲存並載入" }),
-        state.cfg ? h("button", { class: "ghost", type: "button", text: "取消", onclick: function () { state.view = "brief"; render(); } }) : null));
+      h("div", { class: "acts" },
+        h("button", { class: "btn pri", type: "submit", text: "儲存並載入" }),
+        state.cfg ? h("button", { class: "btn", type: "button", text: "取消", onclick: function () { state.view = "brief"; render(); } }) : null));
     form.addEventListener("submit", function (ev) {
       ev.preventDefault();
       var a = api.value.trim(), k = key.value.trim();
@@ -573,14 +965,16 @@ a:focus-visible, button:focus-visible, input:focus-visible { outline: 2px solid 
       state.data = null; state.at = 0; state.animated = false;
       refresh();
     });
-    root.appendChild(form);
+    var main = h("div", { class: "main" }, form);
+    root.className = ""; root.appendChild(main);
+    var st = document.documentElement.style; st.setProperty("--sky-top", "#2C74DB");
   }
 
   // ---------- 更新 ----------
-  function refresh() {
+  function refresh(fresh) {
     if (state.busy || !state.cfg) return;
     state.busy = true; state.error = null; render();
-    load(state.cfg).then(function (d) {
+    call(state.cfg, fresh === true ? { fresh: "1" } : {}).then(function (d) {
       state.data = d; state.at = Date.now();
       lsSet("brief.cache", JSON.stringify({ at: state.at, data: d }));
     }).catch(function (e) {
@@ -588,14 +982,18 @@ a:focus-visible, button:focus-visible, input:focus-visible { outline: 2px solid 
     }).then(function () { state.busy = false; render(); });
   }
 
-  // ---------- 示範資料（網址加 #demo 可預覽版面）----------
-  function demoData() {
-    var tp = nowTP(), ev = function (time, title, loc, s, e, tight, gap) { return { time: time, title: title, location: loc || "", allDay: false, s: s, e: e, tight: !!tight, gap: tight ? gap : null }; };
+  // ---------- 示範資料（網址加 #demo、#demo=rain、#demo=night、#demo=clear 可預覽版面）----------
+  function demoData(kind) {
+    var tp = nowTP(), codes = { clear: 0, partly: 2, cloud: 3, rain: 63, night: 1, storm: 95, fog: 45, snow: 73 }, code = codes[kind] != null ? codes[kind] : 3;
+    var hours = [], i;
+    for (i = 0; i < 24; i++) hours.push({ h: i, t: Math.round((20.5 + 5.5 * Math.sin((i - 9) / 24 * 2 * Math.PI)) * 10) / 10, p: (kind === "rain" || kind === "storm") ? (i >= 13 && i <= 18 ? 85 - Math.abs(i - 15) * 10 : 25) : (i >= 15 && i <= 17 ? 55 : 8), c: code });
+    var ev = function (time, title, loc, s, e, tight, gap) { return { time: time, title: title, location: loc || "", allDay: false, s: s, e: e, tight: !!tight, gap: tight ? gap : null }; };
+    var wet = kind === "rain" || kind === "storm";
     return {
-      ok: true, version: 1, date: tp.date, weekday: weekdayOf(tp.date), errors: [],
-      weather: { icon: "⛅", desc: "局部多雲", tmin: 18, tmax: 27, popMax: 70, stable: false, place: "新竹市北區",
-        alerts: [{ kind: "layers", text: "溫差 9°C，洋蔥式穿搭，方便增減" }, { kind: "rain", text: "14:00–17:00（70%）降雨機率偏高，外出／騎車帶雨具" }, { kind: "wind", text: "陣風 15:00–17:00 最高 46 km/h（6 級），騎車留意側風" }],
-        rain: [{ s: 14, e: 17, p: 70 }], wind: [{ s: 15, e: 17, v: 46, lv: 6 }] },
+      ok: true, version: 2, date: tp.date, weekday: weekdayOf(tp.date), errors: [],
+      weather: { icon: "⛅", desc: { clear: "晴朗", partly: "局部多雲", cloud: "陰天", rain: "中雨", night: "晴朗", storm: "雷雨", fog: "起霧", snow: "中雪" }[kind] || "陰天", code: code, tmin: 18, tmax: 27, popMax: wet ? 85 : 55, stable: !wet && kind === "clear", place: "新竹市北區",
+        alerts: kind === "clear" ? [] : [{ kind: "layers", text: "溫差 9°C，洋蔥式穿搭，方便增減" }, { kind: "rain", text: "14:00–17:00（" + (wet ? 85 : 55) + "%）降雨機率偏高，外出／騎車帶雨具" }, { kind: "wind", text: "陣風 15:00–17:00 最高 46 km/h（6 級），騎車留意側風" }],
+        rain: [{ s: 14, e: 17, p: wet ? 85 : 55 }], wind: [{ s: 15, e: 17, v: 46, lv: 6 }], hours: hours, sun: { rise: "06:08", set: "17:04" } },
       events: [
         { time: "全天", title: "小明生日", location: "", allDay: true, s: null, e: null, tight: false, gap: null },
         ev("09:30", "設計評審", "新竹科學園區", 570, 630),
@@ -604,32 +1002,44 @@ a:focus-visible, button:focus-visible, input:focus-visible { outline: 2px solid 
         ev("15:00", "牙醫回診", "新竹市東區", 900, 960),
         ev("19:00", "線上讀書會", "", 1140, 1200)],
       todo: { items: ["繳電費", "回覆供應商報價", "取包裹"], more: 0, total: 3, stale: false },
-      countdown: [{ name: "元旦", days: 39 }, { name: "農曆春節", days: 75 }, { name: "專案上線", days: 22 }],
+      countdown: cdView([{ id: "d1", name: "元旦", date: "2027-01-01" }, { id: "d2", name: "農曆春節", date: "2027-02-06" }, { id: "d3", name: "專案上線", date: addDemoDays(tp.date, 5) }, { id: "d4", name: "小明生日", date: "1995-08-17", repeat: "yearly" }, { id: "d5", name: "牙醫回診", date: tp.date }], tp.date),
       news: [
-        { id: "domestic", name: "國內", emoji: "🇹🇼", ok: true, items: [{ title: "氣象署：今晚起東北季風增強，北部轉涼", url: "https://example.com/1", source: "公視" }, { title: "新竹縣市連假交通疏運措施公布", url: "https://example.com/2", source: "自由" }] },
-        { id: "world", name: "國際", emoji: "🌏", ok: true, items: [{ title: "聯準會官員：降息步調仍需看通膨數據", url: "https://example.com/3", source: "BBC中文" }] },
-        { id: "tech", name: "科技／設計", emoji: "💡", ok: true, items: [{ title: "Figma 推出新版變數與設計系統管理功能", url: "https://example.com/4", source: "INSIDE" }, { title: "工業設計新銳：以回收材料打造的模組化家具", url: "https://example.com/5", source: "Dezeen" }] }]
+        { id: "domestic", name: "國內", emoji: "🇹🇼", ok: true, items: [
+          { title: "氣象署：東北季風增強，北部、東半部明起轉濕涼", url: "https://example.com/1", source: "TVBS" },
+          { title: "新竹縣市連假交通疏運措施公布，國道不收費時段一次看", url: "https://example.com/2", source: "台視" },
+          { title: "高鐵返鄉投票加開班次，明凌晨開放訂票", url: "https://example.com/3", source: "公視" },
+          { title: "電價審議會議決議下半年維持凍漲", url: "https://example.com/4", source: "TVBS" }] },
+        { id: "world", name: "國際", emoji: "🌏", ok: true, items: [
+          { title: "輝達董事會讓黃仁勳回任執行長", url: "https://example.com/5", source: "CNN", tr: true, en: "Nvidia board reinstates Jensen Huang as CEO" },
+          { title: "日本首相：將加強防衛預算審查", url: "https://example.com/6", source: "NHK", tr: true, en: "Japan PM to tighten defense budget review" },
+          { title: "聯準會官員：降息步調仍需看通膨數據", url: "https://example.com/7", source: "BBC" }] },
+        { id: "tech", name: "科技／設計", emoji: "💡", ok: true, items: [
+          { title: "Figma 推出新版變數與設計系統管理功能", url: "https://example.com/8", source: "INSIDE" },
+          { title: "回收材料打造的模組化家具獲年度設計獎", url: "https://example.com/9", source: "Dezeen", tr: true, en: "Modular furniture from recycled materials wins design award" }] }],
+      settings: { ics: kind === "ics" ? [{ i: 0, host: "p12-caldav.icloud.com", tail: "12345" }] : [] }
     };
   }
+  function addDemoDays(ymd, n) { var d = new Date((dnum(ymd) + n) * 86400000); return d.getUTCFullYear() + "-" + pad2(d.getUTCMonth() + 1) + "-" + pad2(d.getUTCDate()); }
 
   // ---------- App 圖示（加到主畫面時 iOS 會讀取）----------
   function setIcon() {
     try {
       var c = document.createElement("canvas"); c.width = c.height = 180;
-      var g = c.getContext("2d");
-      g.fillStyle = "#14202B"; g.fillRect(0, 0, 180, 180);
-      g.fillStyle = "#F2B24C"; g.beginPath(); g.arc(90, 112, 44, Math.PI, 0); g.fill();            // 地平線上的太陽
-      g.fillStyle = "#EDF0F3"; g.fillRect(34, 112, 112, 6);
-      g.fillStyle = "rgba(237,240,243,.45)"; g.fillRect(54, 130, 72, 6);
+      var g = c.getContext("2d"), grd = g.createLinearGradient(0, 0, 0, 180);
+      grd.addColorStop(0, "#2C74DB"); grd.addColorStop(1, "#1B4DA3");
+      g.fillStyle = grd; g.fillRect(0, 0, 180, 180);
+      g.fillStyle = "#FFD66B"; g.beginPath(); g.arc(90, 112, 40, Math.PI, 0); g.fill();            // 地平線上的太陽
+      g.fillStyle = "rgba(255,255,255,.92)"; g.fillRect(30, 112, 120, 6);
+      g.fillStyle = "rgba(255,255,255,.4)"; g.fillRect(52, 130, 76, 6);
       var l = document.createElement("link"); l.rel = "apple-touch-icon"; l.href = c.toDataURL("image/png"); document.head.appendChild(l);
     } catch (e) { /* 圖示只是加分項 */ }
   }
 
   // ---------- 啟動 ----------
   function boot() {
-    state.view = "brief"; state.error = null; state.demo = false;
+    state.view = "brief"; state.error = null; state.demo = "";
     state.cfg = readConfig();
-    if (state.demo) { state.data = demoData(); state.at = Date.now(); render(); return; }
+    if (state.demo) { state.data = demoData(state.demo); state.at = Date.now(); render(); return; }
     if (state.cfg) {
       pinHash(state.cfg);
       var c = jget("brief.cache", null);
