@@ -177,8 +177,11 @@ var WX_NAME     = "HSINCHU N. DIST";   /* 天氣第二行顯示的地名（英�
 var WX_MS       = 1800000;      /* 天氣更新間隔（毫秒）：30 分鐘 */
 var WX_RETRY_MS = 120000;       /* 天氣取得失敗後重試間隔（毫秒）：2 分鐘 */
 var TZ_MIN         = 480;       /* 顯示時區：UTC+8（台北）。畫面一律以此計算，不受平板自己的時區設定影響 */
-var CLOCK_SYNC_MS  = 900000;    /* 向網站伺服器校正時間的間隔（毫秒）：15 分鐘 */
-var CLOCK_RETRY_MS = 60000;     /* 校正失敗後重試間隔（毫秒）：1 分鐘 */
+var CLOCK_SYNC_MS  = 300000;    /* 向網站伺服器校正時間的間隔（毫秒）：5 分鐘 */
+var CLOCK_RETRY_MS = 60000;     /* 連續失敗 4 次之後的重試間隔（毫秒）：1 分鐘 */
+var CLOCK_FAST_MS  = 8000;      /* 剛失敗時的快速重試間隔（毫秒）：8 秒 */
+var CLOCK_RTT_MAX  = 10000;     /* 校時請求來回超過這個時間就不採用（毫秒）；舊平板網路慢，放寬到 10 秒（請求本身 12 秒逾時），誤差最多約 ±5 秒 */
+var CLOCK_STALE_MS = 600000;    /* 超過 10 分鐘沒校時成功，標籤改顯示 STALE */
 /* ======================================================== */
 
 (function () {
@@ -328,6 +331,7 @@ var CLOCK_RETRY_MS = 60000;     /* 校正失敗後重試間隔（毫秒）：1 �
     var wx = null, wxErr = '', wxSig = null, wxTimer = null, wxBusy = false, wxFetchDay = '';
     var wxHttps = (location.protocol === 'https:'), wxQuick = false;
     var clkTag = $('clkTag'), clkTagText = '', clkTimer = null, clkAt = 0, tickTimer = null, shownMin = -1;
+    var clkFail = '', clkFails = 0, clkOkAt = 0, lastW = new Date().getTime();
 
     stage.style.display = 'block';
 
@@ -522,7 +526,11 @@ var CLOCK_RETRY_MS = 60000;     /* 校正失敗後重試間隔（毫秒）：1 �
     }
 
     function watch() {
+      var raw = new Date().getTime(), gap = raw - lastW;
+      lastW = raw;
+      if (gap > 5000 || gap < -1000) { onWake(); }   /* 頁面被凍結過（睡眠、瀏覽器暫停）或平板時鐘被跳改 → 立刻重畫並重新校時 */
       if (Math.floor(nowMs() / 60000) !== shownMin) { tick(); }
+      setClockTag();
       setTimeout(watch, 1000);
     }
 
@@ -537,41 +545,54 @@ var CLOCK_RETRY_MS = 60000;     /* 校正失敗後重試間隔（毫秒）：1 �
     }
 
     function setClockTag() {
-      var t = '// ' + (clockSynced ? 'TAIPEI TIME' : 'LOCAL TIME');
+      var t = '// ' + (clockSynced ? 'TAIPEI TIME' : 'LOCAL TIME'), age = new Date().getTime() - clkOkAt;
       if (clockSynced) {
         t += adjText(clockOffset);
         if (new Date().getTimezoneOffset() !== -TZ_MIN) { t += ' // TZ FIX'; }   /* 平板時區不是 UTC+8，已改用台北時間 */
+        if (clkFail !== '' && age > CLOCK_STALE_MS) { t += ' // STALE ' + Math.round(age / 60000) + 'M [' + clkFail + ']'; }   /* 很久沒校成功：顯示多久、原因 */
+      } else if (clkFail !== '') {
+        t += ' [' + clkFail + ']';   /* 一直校不到：NET＝連不上、HTTP n＝伺服器回應錯誤、NO DATE＝沒有時間標頭、SLOW＝太慢、JUMP＝校時當下時鐘被改 */
       }
       if (t !== clkTagText) { clkTagText = t; clkTag.textContent = t; }
     }
 
-    /* 對自己的網站送 HEAD（同網域，可讀 Date 標頭）；Date 只到秒，所以加 0.5 秒取平均，並扣掉來回時間的一半 */
+    /* 對自己的網站送 HEAD（同網域，可讀 Date 標頭；失敗兩次換一次 GET）；Date 只到秒，所以加 0.5 秒取平均，並扣掉來回時間的一半 */
     function syncClock() {
       var t0 = new Date().getTime();
       if (clkTimer) { clearTimeout(clkTimer); clkTimer = null; }
       clkAt = t0;
-      request('HEAD', location.pathname + '?_t=' + t0, null, function (status, text, xhr) {
-        var t1 = new Date().getTime(), srv = NaN, off;
-        if (status === 200 && xhr && t1 - t0 < 4000) {
+      request(clkFails % 2 === 1 ? 'GET' : 'HEAD', location.pathname + '?_t=' + t0, null, function (status, text, xhr) {
+        var t1 = new Date().getTime(), rtt = t1 - t0, srv = NaN, off, why = '';
+        if (status !== 200 || !xhr) {
+          why = status === 0 ? 'NET' : 'HTTP ' + status;
+        } else if (rtt < 0) {
+          why = 'JUMP';
+        } else if (rtt >= CLOCK_RTT_MAX) {
+          why = 'SLOW';
+        } else {
           try { srv = Date.parse(xhr.getResponseHeader('Date')); } catch (e) { srv = NaN; }
-          if (srv === srv) {
-            off = (srv + 500) - Math.round((t0 + t1) / 2);
-            if (!clockSynced || Math.abs(off - clockOffset) > 1000) { clockOffset = off; }   /* 小幅抖動不理它，避免分鐘數跳來跳去 */
-            clockSynced = true;
-            setClockTag();
-            tick();
-            clkTimer = setTimeout(syncClock, CLOCK_SYNC_MS);
-            return;
-          }
+          if (srv !== srv) { why = 'NO DATE'; }
         }
-        clkTimer = setTimeout(syncClock, CLOCK_RETRY_MS);
+        if (why === '') {
+          off = (srv + 500) - Math.round((t0 + t1) / 2);
+          if (!clockSynced || Math.abs(off - clockOffset) > 1000 + Math.round(rtt / 2)) { clockOffset = off; }   /* 小幅抖動不理它，避免分鐘數跳來跳去 */
+          clockSynced = true;
+          clkFail = ''; clkFails = 0; clkOkAt = t1;
+          setClockTag();
+          tick();
+          clkTimer = setTimeout(syncClock, CLOCK_SYNC_MS);
+          return;
+        }
+        clkFail = why; clkFails += 1;
+        setClockTag();
+        clkTimer = setTimeout(syncClock, clkFails < 4 ? CLOCK_FAST_MS : CLOCK_RETRY_MS);
       });
     }
 
-    /* 平板睡眠、螢幕關閉後回來：立刻重畫，並在 30 秒內沒校過時就重新校時 */
+    /* 平板睡眠、螢幕關閉、頁面被凍結後回來：立刻重畫，並在 10 秒內沒校過時就重新校時 */
     function onWake() {
       tick();
-      if (new Date().getTime() - clkAt > 30000) { syncClock(); }
+      if (Math.abs(new Date().getTime() - clkAt) > 10000) { syncClock(); }
     }
     if (document.addEventListener) {
       document.addEventListener('visibilitychange', onWake, false);
