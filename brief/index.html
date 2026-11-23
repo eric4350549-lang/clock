@@ -729,6 +729,7 @@ a:focus-visible, button:focus-visible, input:focus-visible, summary:focus-visibl
     var sec = h("section", { class: "sec" }, secHead("倒數日", null, h("button", { class: "link", type: "button", onclick: function () { openCountdown(null); } }, ico("plus"), "新增")));
     var row = h("div", { class: "tickets" });
     list.forEach(function (c) {
+      if (!c || !c.date || typeof c.days !== "number") return;
       var past = c.days < 0, cls = "tk" + (past ? " past" : c.days === 0 ? " today" : c.days <= SOON_DAYS ? " soon" : "");
       var num = past ? h("div", { class: "num day0" }, "已過 " + (-c.days), h("small", { text: "天" })) :
         c.days === 0 ? h("div", { class: "num" }, "今天") : h("div", { class: "num" }, String(c.days), h("small", { text: "天" }));
@@ -782,8 +783,9 @@ a:focus-visible, button:focus-visible, input:focus-visible, summary:focus-visibl
       main.appendChild(notice(msg, act));
     }
     if (!d) { if (!state.error) main.appendChild(h("p", { class: "load", text: state.busy ? "" : "" })); return; }
-    main.appendChild(buildEvents(d, tp.min, isToday));
-    [buildTodo(d), buildCountdown(d), buildNews(d)].forEach(function (s) { if (s) main.appendChild(s); });
+    [function () { return buildEvents(d, tp.min, isToday); }, function () { return buildTodo(d); }, function () { return buildCountdown(d); }, function () { return buildNews(d); }].forEach(function (mk) {
+      try { var s = mk(); if (s) main.appendChild(s); } catch (e) { /* 單一區塊資料異常時，其餘區塊照常顯示 */ }
+    });
     main.appendChild(h("p", { class: "foot", text: state.busy ? "更新中…" : state.demo ? "示範資料" : state.at ? "更新於 " + hhmm(state.at) : "" }));
     if (hero.chart) { hero.chart.__draw(); layoutChart = hero.chart.__draw; } else layoutChart = null;
     state.animated = true;
@@ -1043,7 +1045,7 @@ a:focus-visible, button:focus-visible, input:focus-visible, summary:focus-visibl
     if (state.cfg) {
       pinHash(state.cfg);
       var c = jget("brief.cache", null);
-      if (c && c.data && c.data.date === nowTP().date) { state.data = c.data; state.at = c.at; }   // 先秀今天的舊資料，同時在背景更新
+      if (c && c.data && c.data.version === 2 && c.data.date === nowTP().date) { state.data = c.data; state.at = c.at; }   // 先秀今天的舊資料，同時在背景更新
       refresh();
     } else render();
   }
