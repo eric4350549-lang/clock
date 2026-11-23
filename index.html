@@ -32,7 +32,7 @@ body {
 #stage.split #notePane  { left: 66.6666%; }
 #stage.anim #clockPane { -webkit-transition: width .6s ease; transition: width .6s ease; }
 #stage.anim #notePane  { -webkit-transition: left .6s ease;  transition: left .6s ease; }
-#stage.anim #time, #stage.anim #date { -webkit-transition: font-size .6s ease; transition: font-size .6s ease; }
+#stage.anim #time, #stage.anim #date, #stage.anim #wx { -webkit-transition: font-size .6s ease; transition: font-size .6s ease; }
 
 /* frame + corner brackets */
 .frame { position: absolute; left: 16px; right: 16px; top: 16px; bottom: 16px; border: 1px solid #1A3A4A; }
@@ -78,6 +78,14 @@ body {
 #time .colon { opacity: .55; }
 .rule { width: 46%; height: 1px; margin: 0 auto; background: #1A3A4A; }
 #date { font-size: 30px; padding-top: .55em; font-weight: 300; letter-spacing: .22em; white-space: nowrap; color: #E0F7FA; opacity: .8; }
+
+/* weather: icon + two text lines under the date (all sizes in em, set from JS) */
+.wx { display: none; margin-top: 1.5em; font-size: 28px; white-space: nowrap; }
+.wxIcon { display: inline-block; width: 3em; height: 3em; margin-right: .7em; vertical-align: middle; color: #00F0FF; }
+.wxIcon svg { display: block; width: 100%; height: 100%; }
+.wxTxt { display: inline-block; vertical-align: middle; text-align: left; }
+.wxMain { display: block; font-size: 1em; line-height: 1.2; font-weight: 300; letter-spacing: .22em; color: #E0F7FA; opacity: .8; }
+.wxSub { display: block; margin-top: .45em; font-size: .6em; line-height: 1.3; letter-spacing: .16em; color: #4E8C99; }
 
 /* note pane */
 #noteTitle { position: absolute; left: 44px; right: 44px; top: 44px; font-size: 28px; font-weight: 300; letter-spacing: .3em; color: #00F0FF; text-shadow: 0 0 14px rgba(0,240,255,.35); white-space: nowrap; }
@@ -127,6 +135,7 @@ html.edit, body.edit { height: auto; min-height: 100%; overflow: auto; -webkit-u
       <div id="time">00<span class="colon">:</span>00</div>
       <div class="rule"></div>
       <div id="date">0000.00.00 // ---</div>
+      <div id="wx" class="wx"><span id="wxIcon" class="wxIcon"></span><span class="wxTxt"><span id="wxMain" class="wxMain"></span><span id="wxSub" class="wxSub"></span></span></div>
     </div></div>
     <div id="peekBtn" class="peek"><i class="mk"></i><span id="peekLbl">TASKS</span><span id="peekCnt" class="cnt">0</span></div>
     <div id="fsBtn" class="fs"><i class="mk"></i>FULLSCREEN</div>
@@ -162,11 +171,17 @@ var CLEAR_TOKEN = "CLEAR_NOTE"; /* 代表「清空」的特殊字串 */
 var NIGHT_FROM  = 0;            /* 夜間模式起（含）：00:00 */
 var NIGHT_TO    = 6;            /* 夜間模式迄（不含）：06:00 */
 var PEEK_MS     = 20000;        /* 夜間點「TASKS」按鈕後，臨時顯示待辦的秒數（毫秒） */
+var WX_LAT      = 24.82;        /* 天氣位置：新竹市北區 */
+var WX_LON      = 120.97;
+var WX_NAME     = "HSINCHU N. DIST";   /* 天氣第二行顯示的地名（英文） */
+var WX_MS       = 1800000;      /* 天氣更新間隔（毫秒）：30 分鐘 */
+var WX_RETRY_MS = 120000;       /* 天氣取得失敗後重試間隔（毫秒）：2 分鐘 */
 /* ======================================================== */
 
 (function () {
   var LS_NOTE  = 'acerclock.note';
   var LS_DRAFT = 'acerclock.draft';
+  var LS_WX    = 'acerclock.wx';
   var DAYS = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'];
 
   /* ---------- helpers ---------- */
@@ -220,6 +235,71 @@ var PEEK_MS     = 20000;        /* 夜間點「TASKS」按鈕後，臨時顯示�
   }
 
   /* =====================================================
+     天氣：圖示（青色線條，分類比照氣象署：晴、多雲、陰、霧、陣雨、雨、雷雨…）與資料解析
+     資料來源：Open-Meteo（免金鑰、可跨網域）；WMO 天氣代碼 → 圖示 + 英文名稱
+     ===================================================== */
+  var WX_SVG = '<svg viewBox="4 4 56 56" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">';
+  var WX_ICONS = {
+    sun: '<circle cx="32" cy="32" r="10"/><path stroke-opacity=".6" d="M49 32L56 32M44 44L49 49M32 49L32 56M20 44L15 49M15 32L8 32M20 20L15 15M32 15L32 8M44 20L49 15"/>',
+    moon: '<path d="M40 12A20 20 0 1 0 52 42A16 16 0 0 1 40 12Z"/><path stroke-opacity=".6" d="M47 14v6M44 17h6M52 26v4M50 28h4"/>',
+    sunCloud: '<circle cx="25" cy="24" r="8"/><path stroke-opacity=".6" d="M12.5 24L7.5 24M16.2 15.2L12.6 11.6M25 11.5L25 6.5M33.8 15.2L37.4 11.6M16.2 32.8L12.6 36.4"/><path fill="#000" d="M19 46H45a9 9 0 0 0 1.4-17.9A13.5 13.5 0 0 0 20.2 31.2A7.7 7.7 0 0 0 19 46Z" transform="translate(11.5 10) scale(0.8)"/>',
+    moonCloud: '<path transform="translate(1 1) scale(.7)" d="M40 12A20 20 0 1 0 52 42A16 16 0 0 1 40 12Z"/><path fill="#000" d="M19 46H45a9 9 0 0 0 1.4-17.9A13.5 13.5 0 0 0 20.2 31.2A7.7 7.7 0 0 0 19 46Z" transform="translate(11.5 10) scale(0.82)"/>',
+    cloud: '<path d="M19 46H45a9 9 0 0 0 1.4-17.9A13.5 13.5 0 0 0 20.2 31.2A7.7 7.7 0 0 0 19 46Z" transform="translate(0 3) scale(1)"/>',
+    fog: '<path d="M12 22H44M20 32H54M12 42H40M24 52H50"/>',
+    drizzle: '<path d="M19 46H45a9 9 0 0 0 1.4-17.9A13.5 13.5 0 0 0 20.2 31.2A7.7 7.7 0 0 0 19 46Z" transform="translate(0 -1) scale(1.0)"/><path stroke-opacity=".7" d="M24 49l-1.6 4M33 49l-1.6 4M42 49l-1.6 4M28.5 55.5l-1.6 4M37.5 55.5l-1.6 4"/>',
+    showers: '<path d="M19 46H45a9 9 0 0 0 1.4-17.9A13.5 13.5 0 0 0 20.2 31.2A7.7 7.7 0 0 0 19 46Z" transform="translate(0 -1) scale(1.0)"/><path stroke-opacity=".8" d="M25 49l-3 8M34 49l-3 8M43 49l-3 8"/>',
+    rain: '<path d="M19 46H45a9 9 0 0 0 1.4-17.9A13.5 13.5 0 0 0 20.2 31.2A7.7 7.7 0 0 0 19 46Z" transform="translate(0 -4) scale(1.0)"/><path stroke-opacity=".8" d="M21 45l-3.5 9M29.5 45l-3.5 9M38 45l-3.5 9M46.5 45l-3.5 9M25 56l-2 5M42 56l-2 5"/>',
+    thunder: '<path d="M19 46H45a9 9 0 0 0 1.4-17.9A13.5 13.5 0 0 0 20.2 31.2A7.7 7.7 0 0 0 19 46Z" transform="translate(0 -2) scale(1.0)"/><path d="M35 44L27 54H35L29 62"/>',
+    snow: '<path d="M19 46H45a9 9 0 0 0 1.4-17.9A13.5 13.5 0 0 0 20.2 31.2A7.7 7.7 0 0 0 19 46Z" transform="translate(0 -2) scale(1)"/><path stroke-opacity=".75" d="M22 53L22 57.2M22 53L18.4 55.1M22 53L18.4 50.9M22 53L22 48.8M22 53L25.6 50.9M22 53L25.6 55.1M32 57L32 61.2M32 57L28.4 59.1M32 57L28.4 54.9M32 57L32 52.8M32 57L35.6 54.9M32 57L35.6 59.1M42 53L42 57.2M42 53L38.4 55.1M42 53L38.4 50.9M42 53L42 48.8M42 53L45.6 50.9M42 53L45.6 55.1"/>'
+  };
+
+  function wxInfo(code, day) {
+    if (code === 0) { return [day ? 'sun' : 'moon', 'CLEAR']; }
+    if (code === 1) { return [day ? 'sunCloud' : 'moonCloud', 'MOSTLY CLEAR']; }
+    if (code === 2) { return [day ? 'sunCloud' : 'moonCloud', 'PARTLY CLOUDY']; }
+    if (code === 3) { return ['cloud', 'CLOUDY']; }
+    if (code === 45 || code === 48) { return ['fog', 'FOG']; }
+    if (code >= 51 && code <= 57) { return ['drizzle', 'DRIZZLE']; }
+    if (code >= 61 && code <= 67) { return ['rain', 'RAIN']; }
+    if (code >= 71 && code <= 77) { return ['snow', 'SNOW']; }
+    if (code >= 80 && code <= 82) { return ['showers', 'SHOWERS']; }
+    if (code === 85 || code === 86) { return ['snow', 'SNOW SHOWERS']; }
+    if (code >= 95 && code <= 99) { return ['thunder', 'THUNDERSTORM']; }
+    return ['cloud', 'CLOUDY'];
+  }
+
+  function dayKey(d) { return d.getFullYear() + '-' + pad2(d.getMonth() + 1) + '-' + pad2(d.getDate()); }
+  function num(v) { return (typeof v === 'number' && v === v) ? v : null; }
+  function first(a) { return (a && a.length) ? a[0] : null; }
+  function hmMin(s) {   /* "2026-11-23T06:11" → 371 分鐘 */
+    var m = /T(\d\d):(\d\d)/.exec(String(s || ''));
+    return m ? parseInt(m[1], 10) * 60 + parseInt(m[2], 10) : null;
+  }
+  function wxUrl(https) {
+    return (https ? 'https://' : 'http://') + 'api.open-meteo.com/v1/forecast?latitude=' + WX_LAT + '&longitude=' + WX_LON +
+      '&current=temperature_2m,weather_code&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max,sunrise,sunset' +
+      '&timezone=Asia%2FTaipei&forecast_days=1';
+  }
+  /* 回傳 {t, code, hi, lo, pop, rise, set}；資料不完整回傳 null */
+  function parseWx(text) {
+    var o, c, d, t, code;
+    try { o = JSON.parse(text); } catch (e) { return null; }
+    if (!o || !o.current) { return null; }
+    c = o.current; d = o.daily || {};
+    t = num(c.temperature_2m);
+    code = num(c.weather_code);
+    if (code === null) { code = num(first(d.weather_code)); }
+    if (t === null || code === null) { return null; }
+    return { t: t, code: code, hi: num(first(d.temperature_2m_max)), lo: num(first(d.temperature_2m_min)),
+             pop: num(first(d.precipitation_probability_max)), rise: hmMin(first(d.sunrise)), set: hmMin(first(d.sunset)) };
+  }
+  function isDayNow(w, now) {
+    var m = now.getHours() * 60 + now.getMinutes();
+    if (w.rise !== null && w.set !== null) { return m >= w.rise && m < w.set; }
+    return now.getHours() >= 6 && now.getHours() < 18;
+  }
+
+  /* =====================================================
      平板顯示模式
      ===================================================== */
   function initTablet() {
@@ -232,8 +312,17 @@ var PEEK_MS     = 20000;        /* 夜間點「TASKS」按鈕後，臨時顯示�
     var lastTime = '', lastDate = '';
     var useHttps = (location.protocol === 'https:');  /* 先用頁面同樣的協定；失敗時會自動改試另一種 */
     var quick = false;                                /* 剛換過協定：稍後立刻再試一次 */
+    var wxBox = $('wx'), wxIconEl = $('wxIcon'), wxMainEl = $('wxMain'), wxSubEl = $('wxSub');
+    var wx = null, wxErr = '', wxSig = null, wxTimer = null, wxBusy = false, wxFetchDay = '';
+    var wxHttps = (location.protocol === 'https:'), wxQuick = false;
 
     stage.style.display = 'block';
+
+    (function () {   /* 讀回上次的天氣（同一天才會顯示），斷網時也有畫面 */
+      var raw = lsGet(LS_WX), o = null;
+      if (raw) { try { o = JSON.parse(raw); } catch (e) { o = null; } }
+      if (o && typeof o.t === 'number' && typeof o.code === 'number' && typeof o.day === 'string') { wx = o; }
+    })();
 
     /* 萬一有執行錯誤，直接顯示在右下角，方便在平板上看出問題 */
     window.onerror = function (msg) {
@@ -272,6 +361,7 @@ var PEEK_MS     = 20000;        /* 夜間點「TASKS」按鈕後，臨時顯示�
       var ts = Math.floor(Math.min(paneW * 0.265, H * 0.46));
       timeEl.style.fontSize = ts + 'px';
       dateEl.style.fontSize = Math.max(14, Math.floor(ts * 0.15)) + 'px';
+      wxBox.style.fontSize = Math.max(12, Math.floor(ts * 0.095)) + 'px';
       noteTitle.style.fontSize = Math.max(14, Math.floor((W / 3) * 0.065)) + 'px';
       fitNote();
     }
@@ -351,11 +441,68 @@ var PEEK_MS     = 20000;        /* 夜間點「TASKS」按鈕後，臨時顯示�
       syncEl.className = 'tag tagR' + (ok ? '' : ' bad');
     }
 
+    /* ---- 天氣：顯示在日期下方；有今天的資料就顯示，取不到才顯示 OFFLINE 與原因 ---- */
+    function renderWx() {
+      var now = new Date(), main, sub, key, info, sig;
+      if (wx && wx.day === dayKey(now)) {
+        info = wxInfo(wx.code, isDayNow(wx, now));
+        key = info[0];
+        main = info[1] + ' // ' + Math.round(wx.t) + '\u00B0C';
+        sub = WX_NAME;
+        if (wx.lo !== null && wx.hi !== null) { sub += ' \u00B7 L ' + Math.round(wx.lo) + '\u00B0 H ' + Math.round(wx.hi) + '\u00B0'; }
+        if (wx.pop !== null) { sub += ' \u00B7 RAIN ' + Math.round(wx.pop) + '%'; }
+      } else if (wxErr) {
+        key = '';
+        main = 'WEATHER // OFFLINE';
+        sub = '[' + wxErr + ']';
+      } else {
+        if (wxSig !== 'none') { wxSig = 'none'; wxBox.style.display = 'none'; }
+        return;
+      }
+      sig = key + '|' + main + '|' + sub;
+      if (sig === wxSig) { return; }
+      wxSig = sig;
+      wxIconEl.innerHTML = key ? WX_SVG + WX_ICONS[key] + '</svg>' : '';
+      wxIconEl.style.display = key ? 'inline-block' : 'none';
+      wxMainEl.textContent = main;
+      wxSubEl.textContent = sub;
+      wxBox.style.display = 'block';
+    }
+
+    function wxSchedule(ms) {
+      if (wxTimer) { clearTimeout(wxTimer); }
+      wxTimer = setTimeout(wxFetch, ms);
+    }
+
+    function wxFetch() {
+      if (wxTimer) { clearTimeout(wxTimer); wxTimer = null; }
+      wxBusy = true;
+      wxFetchDay = dayKey(new Date());
+      request('GET', wxUrl(wxHttps), null, function (status, text) {
+        var d = (status === 200) ? parseWx(text) : null;
+        wxBusy = false;
+        if (d) {
+          d.day = dayKey(new Date());
+          wx = d; wxErr = ''; wxQuick = false;
+          lsSet(LS_WX, JSON.stringify(d));
+          renderWx();
+          wxSchedule(WX_MS);
+          return;
+        }
+        wxErr = (status === 0) ? 'NET' : (status === 200 ? 'DATA' : 'HTTP ' + status);
+        if (status === 0) { wxHttps = !wxHttps; wxQuick = !wxQuick; } else { wxQuick = false; }   /* 與待辦同步相同：連不上就換 https/http 再試 */
+        renderWx();
+        wxSchedule(wxQuick ? 1500 : WX_RETRY_MS);
+      });
+    }
+
     /* ---- 每分鐘整點更新時間（不用每秒計時器）---- */
     function tick() {
       var now = new Date();
       renderClock();
       applyMode();
+      renderWx();
+      if (!wxBusy && wxFetchDay !== dayKey(now)) { wxFetch(); }   /* 啟動時、以及跨日後立刻重新取得當日天氣 */
       setTimeout(tick, 60000 - (now.getSeconds() * 1000 + now.getMilliseconds()) + 200);
     }
 
