@@ -187,8 +187,6 @@ a:focus-visible, button:focus-visible, input:focus-visible, summary:focus-visibl
 .todo input:checked { background-color: var(--ok); border-color: var(--ok); background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><path d='m5.5 12.5 4.2 4.2 8.8-9.4' fill='none' stroke='%23fff' stroke-width='3.2' stroke-linecap='round' stroke-linejoin='round'/></svg>"); }
 .todo span { transition: color .18s; }
 .todo label.done span { color: var(--muted); text-decoration: line-through; text-decoration-color: rgba(86, 100, 116, .6); }
-.bar { width: 64px; height: 6px; border-radius: 3px; background: var(--tint); overflow: hidden; margin-left: 10px; display: inline-block; vertical-align: 1px; }
-.bar i { display: block; height: 100%; border-radius: 3px; background: var(--ok); transition: width .3s; }
 .todo-note { margin: 10px 4px 0; color: var(--muted); font-size: 12.5px; }
 
 /* 倒數日：票券；快到了的反白 */
@@ -286,6 +284,9 @@ a:focus-visible, button:focus-visible, input:focus-visible, summary:focus-visibl
 
 .toast { position: fixed; z-index: 80; left: 50%; bottom: calc(24px + env(safe-area-inset-bottom)); transform: translate(-50%, 20px); opacity: 0; max-width: calc(100% - 40px); padding: 11px 18px; border-radius: 999px; background: var(--ink); color: var(--sheet); font-size: 14.5px; font-weight: 600; pointer-events: none; transition: opacity .2s, transform .25s; }
 .toast.on { opacity: 1; transform: translate(-50%, 0); }
+.toast.act { display: flex; align-items: center; gap: 16px; padding-right: 14px; }
+.toast.act.on { pointer-events: auto; }
+.toast button { flex: none; margin: -8px -4px; padding: 8px 6px; border: 0; background: none; color: inherit; font: inherit; font-weight: 750; text-decoration: underline; text-underline-offset: 3px; cursor: pointer; }
 
 .load { margin: 28px 0; color: var(--muted); font-size: 15px; }
 .setup h1 { margin: 8px 0 6px; font: 500 28px/1.2 var(--serif); }
@@ -293,7 +294,7 @@ a:focus-visible, button:focus-visible, input:focus-visible, summary:focus-visibl
 
 @media (prefers-reduced-motion: reduce) {
   .draw .chart .ln, .draw .chart .area, .draw .chart .orb { animation: none; stroke-dasharray: none; stroke-dashoffset: 0; opacity: 1; }
-  #sheet-root .sheet, #sheet-root .back, .toast, .todo input, .bar i { transition: none; }
+  #sheet-root .sheet, #sheet-root .back, .toast, .todo input { transition: none; }
   .gbtn[disabled] .ico { animation: none; }
   .dot::before { transition: none; }
 }
@@ -311,7 +312,7 @@ a:focus-visible, button:focus-visible, input:focus-visible, summary:focus-visibl
 
   var TZ = "Asia/Taipei";
   var WD = ["日", "一", "二", "三", "四", "五", "六"];
-  var STALE_MS = 10 * 60 * 1000;                     // 回到頁面時，超過 10 分鐘就自動更新
+  var STALE_MS = 2 * 60 * 1000;                      // 回到頁面時，超過 2 分鐘就自動更新（待辦要跟 clock 網頁同步，不能太久沒更新）
   var SOON_DAYS = 7;                                 // 倒數 ≤ 7 天的票券反白
   var root = document.getElementById("app");
   var sheetRoot = document.getElementById("sheet-root");
@@ -372,9 +373,16 @@ a:focus-visible, button:focus-visible, input:focus-visible, summary:focus-visibl
     return w.firstChild;
   }
   function isHttp(u) { return /^https?:\/\//i.test(u || ""); }
-  function toast(msg) {
-    toastEl.textContent = msg; toastEl.classList.add("on");
-    clearTimeout(toast.t); toast.t = setTimeout(function () { toastEl.classList.remove("on"); }, 2400);
+  function toast(msg, act) {   // act = { label, fn }：附一個按鈕（例如「復原」），停留較久
+    toastEl.textContent = ""; toastEl.appendChild(document.createTextNode(msg));
+    toastEl.classList.toggle("act", !!act);
+    if (act) {
+      var b = document.createElement("button"); b.type = "button"; b.textContent = act.label;
+      b.addEventListener("click", function () { clearTimeout(toast.t); toastEl.classList.remove("on"); act.fn(); });
+      toastEl.appendChild(b);
+    }
+    toastEl.classList.add("on");
+    clearTimeout(toast.t); toast.t = setTimeout(function () { toastEl.classList.remove("on"); }, act ? 6500 : 2400);
   }
 
   // ---------- 時間（一律用台北時間，與後端一致）----------
@@ -524,7 +532,7 @@ a:focus-visible, button:focus-visible, input:focus-visible, summary:focus-visibl
     var url = cfg.api + (cfg.api.indexOf("?") < 0 ? "?" : "&") + "k=" + encodeURIComponent(cfg.k) + (q ? "&" + q : "");
     return viaFetch(url).catch(function () { return viaJsonp(url); }).then(function (d) {
       if (!d || typeof d !== "object") throw new Error("bad");
-      if (d.ok === false) { var e = new Error(d.error || "error"); e.code = d.error === "unauthorized" ? "unauthorized" : (d.error || "bad"); throw e; }
+      if (d.ok === false) { var e = new Error(d.error || "error"); e.code = d.error === "unauthorized" ? "unauthorized" : (d.error || "bad"); e.data = d; throw e; }
       return d;
     });
   }
@@ -766,33 +774,111 @@ a:focus-visible, button:focus-visible, input:focus-visible, summary:focus-visibl
     if (!td && !failed) return null;                       // 後端沒設定待辦來源 → 整區不顯示
     var sec = h("section", { class: "sec" });
     if (!td) { sec.appendChild(secHead("待辦")); sec.appendChild(h("p", { class: "note", text: "待辦暫時讀不到。稍後再按重新整理。" })); return sec; }
-    var done = jget("brief.done", {}), today = data.date, total = td.items.length, doneN = 0;
-    var count = h("small"), fill = h("i"), meter = h("span", { class: "bar", "aria-hidden": "true" }, fill);
-    sec.appendChild(secHead("待辦", [count, total ? meter : null]));
-    if (!total) { sec.appendChild(h("p", { class: "empty", text: "目前沒有待辦。" })); return sec; }
-    var box = h("div", { class: "todo" });
-    function refreshCount() { count.textContent = doneN + " / " + total; fill.style.width = (total ? doneN / total * 100 : 0) + "%"; }
-    td.items.forEach(function (t) {
-      var key = today + "|" + t, on = !!done[key], cb = h("input", { type: "checkbox" }), lab = h("label", { class: on ? "done" : null }, cb, h("span", { text: t }));
-      cb.checked = on; if (on) doneN++;
-      cb.addEventListener("change", function () {
-        var d = jget("brief.done", {});
-        if (cb.checked) { d[key] = 1; doneN++; } else { delete d[key]; doneN--; }
-        Object.keys(d).forEach(function (k) { if (k.slice(0, 10) !== today) delete d[k]; });   // 只留今天的勾選
-        lsSet("brief.done", JSON.stringify(d));
-        lab.className = cb.checked ? "done" : "";
-        refreshCount();
+    var add = h("button", { class: "link", type: "button", onclick: openTodoAdd }, ico("plus"), "新增");
+    sec.appendChild(secHead("待辦", td.total ? h("small", { text: "剩 " + td.total + " 項" }) : null, add));
+    if (!td.items.length) { sec.appendChild(h("p", { class: "empty", text: "目前沒有待辦。" })); }
+    else {
+      var box = h("div", { class: "todo" });
+      td.items.forEach(function (t) {
+        var cb = h("input", { type: "checkbox" }), lab = h("label", null, cb, h("span", { text: t }));
+        cb.addEventListener("change", function () { if (!cb.checked) return; cb.disabled = true; lab.className = "done"; todoTick(t); });
+        box.appendChild(lab);
       });
-      box.appendChild(lab);
-    });
-    refreshCount();
-    sec.appendChild(box);
+      sec.appendChild(box);
+    }
     var notes = [];
     if (td.more > 0) notes.push("還有 " + td.more + " 項，請到 clock 網頁查看。");
     if (td.stale) notes.push("待辦同步失敗，顯示的是上次的內容。");
-    notes.push("打勾只記在這支手機，不會改到 clock 網頁。");
+    notes.push("打勾就是完成，會一併從 clock 網頁的待辦移除。");
     sec.appendChild(h("p", { class: "todo-note", text: notes.join("　") }));
     return sec;
+  }
+
+  // ---------- 待辦：和 clock 網頁共用同一份清單（打勾＝完成並從清單移除，可復原；也能直接新增）----------
+  var TODO_SHOW = 8;                                       // 與後端 CONFIG.todo.maxItems 相同：畫面只列前 8 項
+  var todoQ = Promise.resolve(), todoPending = 0;          // 一律依序送出，並記下還有幾個在路上
+  function saveCache() { lsSet("brief.cache", JSON.stringify({ at: state.at, data: state.data })); }
+  function todoText(s) { s = String(s).trim(); s = s.replace(/^(?:[-*•·]|\d+[.)])\s+/, "").trim() || s; return s.length <= 60 ? s : s.slice(0, 59).replace(/\s+$/, "") + "…"; }   // 與後端 todoItems + truncate 相同
+  function todoRemoveLocal(text) {
+    var td = state.data && state.data.todo, i = td ? td.items.indexOf(text) : -1;
+    if (i < 0) return -1;
+    td.items.splice(i, 1); td.total = Math.max(0, td.total - 1); if (td.more > 0) td.more--;
+    return i;
+  }
+  function todoInsertLocal(raw, at) {
+    var td = state.data && state.data.todo; if (!td) return;
+    var full = td.items.length >= TODO_SHOW;
+    if (at == null || at < 0 || at > td.items.length) at = td.items.length;
+    if (full && at >= td.items.length) td.more++;
+    else { td.items.splice(at, 0, todoText(raw)); if (full) { td.items.pop(); td.more++; } }
+    td.total++;
+  }
+  function todoApply(td) { if (td && state.data) { state.data.todo = td; saveCache(); } }
+  function todoErr(e) {
+    var c = e && e.code;
+    if (c === "unauthorized") return "金鑰不正確，沒有同步";
+    if (c === "busy") return "同步忙碌中，已還原。請再試一次";
+    if (c === "sync_failed") return "同步失敗，已還原。稍後再試";
+    if (c === "bad_action" || c === "no_todo") return "後端還不支援待辦同步，請先更新 Apps Script";
+    if (c === "too_long") return "待辦太長，沒有加入";
+    return "沒有連上，已還原。請確認網路後再試";
+  }
+  // 送出一個動作。只有最後一個動作回來時才用後端清單覆蓋畫面，避免連續打勾時清單跳回去
+  function todoSend(params, onOk, onFail) {
+    todoPending++;
+    var p = todoQ.then(function () { return call(state.cfg, params); });
+    todoQ = p.catch(function () { /* 失敗不擋後面的動作 */ });
+    p.then(function (r) {
+      todoPending--;
+      if (!todoPending && r && r.todo) { todoApply(r.todo); render(); }
+      onOk(r);
+    }, function (e) {
+      todoPending--;
+      if (e && e.code === "bad_index" && e.data && e.data.todo) { todoApply(e.data.todo); render(); toast("這項已在別處處理，清單已更新"); return; }
+      onFail(e);
+    });
+  }
+  function todoTick(text) {
+    var td = state.data.todo, i = td.items.indexOf(text);
+    if (i < 0) return;
+    setTimeout(function () { todoRemoveLocal(text); saveCache(); render(); }, 340);   // 讓打勾動畫先跑完再移除
+    if (state.demo) { toast("已完成（示範模式不會儲存）"); return; }
+    todoSend({ action: "todoDone", i: i, t: text }, function (r) {
+      var rm = r && r.removed;
+      toast("已完成：" + (text.length > 14 ? text.slice(0, 13) + "…" : text), rm ? { label: "復原", fn: function () { todoUndo(rm); } } : null);
+    }, function (e) {
+      todoInsertLocal(text, i); saveCache(); render(); toast(todoErr(e));
+    });
+  }
+  function todoUndo(rm) {
+    todoInsertLocal(rm.line, rm.i); saveCache(); render();
+    todoSend({ action: "todoAdd", text: rm.line, i: rm.i }, function () { toast("已復原"); }, function (e) {
+      todoRemoveLocal(todoText(rm.line)); saveCache(); render(); toast(todoErr(e));
+    });
+  }
+  function todoAdd(text) {
+    todoInsertLocal(text, null); saveCache(); render();
+    if (state.demo) { toast("已加入（示範模式不會儲存）"); return; }
+    todoSend({ action: "todoAdd", text: text }, function () { toast("已加入待辦"); }, function (e) {
+      todoRemoveLocal(todoText(text)); saveCache(); render(); toast(todoErr(e));
+    });
+  }
+  function openTodoAdd() {
+    var inp = h("input", { type: "text", maxlength: "100", placeholder: "例如：寄包裹", autocomplete: "off", enterkeyhint: "done" });
+    var err = h("p", { class: "err", role: "alert" }); err.style.display = "none";
+    return openSheet("新增待辦", function () {
+      var form = h("form", { novalidate: true },
+        h("label", { class: "fld" }, "內容", inp), err,
+        h("div", { class: "acts" }, h("button", { class: "btn pri", type: "submit", text: "加入" })));
+      form.addEventListener("submit", function (ev) {
+        ev.preventDefault();
+        var v = inp.value.replace(/\s+/g, " ").trim();
+        if (!v) { err.textContent = "請輸入內容。"; err.style.display = ""; inp.focus(); return; }
+        closeSheet(); todoAdd(v);
+      });
+      setTimeout(function () { try { inp.focus(); } catch (e) { /* 忽略 */ } }, 350);
+      return form;
+    });
   }
 
   function fmtDateZh(ymd) { var p = ymd.split("-"); return p[0] + "年" + +p[1] + "月" + +p[2] + "日"; }
@@ -881,6 +967,7 @@ a:focus-visible, button:focus-visible, input:focus-visible, summary:focus-visibl
     setTimeout(function () { if (!sheetRoot.classList.contains("open")) sheetRoot.textContent = ""; }, immediate === true ? 0 : 320);
   }
   function openSheet(title, build) {
+    clearTimeout(toast.t); toastEl.classList.remove("on");   // 面板開著時不要讓提示（尤其是「復原」）蓋在按鈕上
     sheetRoot.textContent = "";
     var back = h("div", { class: "back", onclick: closeSheet });
     var sheet = h("div", { class: "sheet", role: "dialog", "aria-modal": "true", "aria-label": title },
@@ -1058,6 +1145,7 @@ a:focus-visible, button:focus-visible, input:focus-visible, summary:focus-visibl
     if (state.busy || !state.cfg) return;
     state.busy = true; state.error = null; render();
     call(state.cfg, fresh === true ? { fresh: "1" } : {}).then(function (d) {
+      if (todoPending && state.data && state.data.todo && d.todo) d.todo = state.data.todo;   // 有待辦動作還在路上：先保留畫面上的，等動作完成再以後端為準
       state.data = d; state.at = Date.now();
       lsSet("brief.cache", JSON.stringify({ at: state.at, data: d }));
     }).catch(function (e) {
@@ -1124,6 +1212,7 @@ a:focus-visible, button:focus-visible, input:focus-visible, summary:focus-visibl
   // ---------- 啟動 ----------
   function boot() {
     state.view = "brief"; state.error = null; state.demo = "";
+    try { localStorage.removeItem("brief.done"); } catch (e) { /* 舊版只記在手機上的打勾，已不再使用 */ }
     state.cfg = readConfig();
     if (state.demo) { state.data = demoData(state.demo); state.at = Date.now(); render(); return; }
     if (state.cfg) {
