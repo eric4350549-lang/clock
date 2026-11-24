@@ -69,9 +69,24 @@ a:focus-visible, button:focus-visible, input:focus-visible, summary:focus-visibl
   position: relative; overflow: hidden; color: #fff;
   background: linear-gradient(180deg, var(--sky-top), var(--sky-bot));
   border-radius: 0 0 34px 34px;
-  padding: calc(env(safe-area-inset-top) + 10px) max(20px, env(safe-area-inset-right)) 22px max(20px, env(safe-area-inset-left));
 }
-.hero::before { content: ""; position: absolute; inset: 0; background: var(--glow); pointer-events: none; }
+.hero-bar { position: absolute; z-index: 3; top: 0; left: 0; right: 0; padding: calc(env(safe-area-inset-top) + 10px) max(20px, env(safe-area-inset-right)) 0 max(20px, env(safe-area-inset-left)); pointer-events: none; }
+.hero-bar .btns { pointer-events: auto; }
+/* 天氣：今天／明天左右滑動（兩頁各自帶著自己的天空顏色，滑動時一起移動） */
+.pager { display: flex; overflow-x: auto; overflow-y: hidden; scroll-snap-type: x mandatory; overscroll-behavior-x: contain; -webkit-overflow-scrolling: touch; scrollbar-width: none; }
+.pager::-webkit-scrollbar { display: none; }
+.pager:focus-visible { outline: 2px solid #fff; outline-offset: -4px; border-radius: 0 0 34px 34px; }
+.pg {
+  position: relative; flex: 0 0 100%; min-width: 0; box-sizing: border-box; scroll-snap-align: start; scroll-snap-stop: always;
+  background: linear-gradient(180deg, var(--pt, var(--sky-top)), var(--pb, var(--sky-bot)));
+  padding: calc(env(safe-area-inset-top) + 54px) max(20px, env(safe-area-inset-right)) 22px max(20px, env(safe-area-inset-left));
+}
+.pg::before { content: ""; position: absolute; inset: 0; background: var(--pgl, var(--glow)); pointer-events: none; }
+.hero.two .pg { padding-bottom: 40px; }
+.dots { position: absolute; z-index: 3; left: 0; right: 0; bottom: 9px; display: flex; justify-content: center; }
+.dot { width: 26px; height: 22px; padding: 0; border: 0; background: none; display: grid; place-items: center; cursor: pointer; }
+.dot::before { content: ""; width: 6px; height: 6px; border-radius: 3px; background: rgba(255, 255, 255, .45); transition: width .22s, background .22s; }
+.dot[aria-current="true"]::before { width: 18px; background: #fff; }
 .hero-in { position: relative; max-width: 520px; margin: 0 auto; }
 .top { display: flex; align-items: center; justify-content: space-between; min-height: 44px; }
 .top .d { font-size: 14.5px; font-weight: 600; letter-spacing: .01em; color: rgba(255, 255, 255, .94); }
@@ -280,6 +295,7 @@ a:focus-visible, button:focus-visible, input:focus-visible, summary:focus-visibl
   .draw .chart .ln, .draw .chart .area, .draw .chart .orb { animation: none; stroke-dasharray: none; stroke-dashoffset: 0; opacity: 1; }
   #sheet-root .sheet, #sheet-root .back, .toast, .todo input, .bar i { transition: none; }
   .gbtn[disabled] .ico { animation: none; }
+  .dot::before { transition: none; }
 }
 </style>
 </head>
@@ -300,7 +316,7 @@ a:focus-visible, button:focus-visible, input:focus-visible, summary:focus-visibl
   var root = document.getElementById("app");
   var sheetRoot = document.getElementById("sheet-root");
   var toastEl = document.getElementById("toast");
-  var state = { cfg: null, data: null, at: 0, busy: false, error: null, view: "brief", animated: false, demo: "", setupMsg: "" };
+  var state = { cfg: null, data: null, at: 0, busy: false, error: null, view: "brief", animated: false, demo: "", setupMsg: "", page: 0 };
 
   // ---------- 儲存（Safari 私密模式可能丟例外）----------
   function lsGet(k) { try { return localStorage.getItem(k); } catch (e) { return null; } }
@@ -371,6 +387,7 @@ a:focus-visible, button:focus-visible, input:focus-visible, summary:focus-visibl
   function dnum(ymd) { var p = ymd.split("-"); return Date.UTC(+p[0], +p[1] - 1, +p[2]) / 86400000; }
   function weekdayOf(ymd) { return WD[new Date(dnum(ymd) * 86400000).getUTCDay()]; }
   function greeting(hour) { return hour < 5 ? "夜深了" : hour < 11 ? "早安" : hour < 18 ? "午安" : "晚上好"; }
+  function dateLabel(ymd) { var p = ymd.split("-"); return +p[1] + "月" + +p[2] + "日　週" + weekdayOf(ymd); }
   function toMin(hm) { var p = String(hm || "").split(":"); return p.length === 2 ? +p[0] * 60 + +p[1] : NaN; }
   // iPhone「行事曆」App 的深層連結：calshow:<自 2001-01-01 起算的秒數>
   function calshow(ymd, minutes) {
@@ -605,34 +622,30 @@ a:focus-visible, button:focus-visible, input:focus-visible, summary:focus-visibl
     return box;
   }
 
-  function buildHero(data, tp, isToday) {
-    var w = data && data.weather, nowMin = isToday ? tp.min : 12 * 60, code = w ? w.code : null;
-    var sk = skyFor(code, nowMin, w && w.sun);
-    applySky(sk);
-    var dateStr = data ? data.date : tp.date, p = dateStr.split("-");
-    var top = h("div", { class: "top" },
-      h("span", { class: "d", text: +p[1] + "月" + +p[2] + "日　週" + weekdayOf(dateStr) }),
-      h("div", { class: "btns" },
-        state.demo ? null : h("button", { class: "gbtn", type: "button", "aria-label": "重新整理", disabled: state.busy, onclick: function () { refresh(true); } }, ico("refresh")),
-        h("button", { class: "gbtn", type: "button", "aria-label": "設定", onclick: openSettings }, ico("sliders"))));
-    var hero = h("header", { class: "hero" }), inn = h("div", { class: "hero-in" }, top, h("h1", { class: "hi", text: greeting(tp.hour) }));
-    hero.appendChild(inn);
-    var chart = null;
+  // 一頁天氣：今天（帶問候）或明天
+  function buildPanel(w, o) {
+    var nowMin = o.nowMin, code = w ? w.code : null, next = o.kind === "next";
+    var sk = skyFor(code, nowMin, w && w.sun), s = SKY[sk.key] || SKY.cloud;
+    var pg = h("section", { class: "pg", role: "group", "aria-roledescription": "頁面", "aria-label": next ? "明天的天氣" : "今天的天氣",
+      style: "--pt:" + s.top + ";--pb:" + s.bot + ";--pgl:" + s.glow });
+    var inn = h("div", { class: "hero-in" }, h("h1", { class: "hi", text: o.title }));
+    pg.appendChild(inn);
+    var out = { el: pg, sk: sk, dateStr: o.dateStr, chart: null };
     if (!w) {
-      inn.appendChild(h("p", { class: "meta", text: data ? "天氣暫時讀不到，稍後再按重新整理。" : (state.busy ? "正在載入今天的簡報…" : "") }));
-      return { el: hero };
+      inn.appendChild(h("p", { class: "meta", text: o.data ? "天氣暫時讀不到，稍後再按重新整理。" : (state.busy ? "正在載入今天的簡報…" : "") }));
+      return out;
     }
-    var nt = nowTemp(w, nowMin, isToday), big = nt != null ? nt : w.tmax;
+    var nt = nowTemp(w, nowMin, o.live), big = nt != null ? nt : w.tmax;
     var gname = wxIconName(code, sk.phase);
     inn.appendChild(h("div", { class: "hnow" },
       h("div", { class: "deg", "aria-label": (nt != null ? "現在 " : "最高 ") + big + " 度" }, String(big), h("sup", { text: "°" })),
       h("div", { class: "cond" }, ico(gname), h("b", { text: w.desc }))));
     inn.appendChild(h("div", { class: "meta" },
       h("span", { text: w.place || "" }),
-      h("span", { text: "今日 " + w.tmin + "–" + w.tmax + "°" }),
+      h("span", { text: (next ? "明日 " : "今日 ") + w.tmin + "–" + w.tmax + "°" }),
       h("span", { text: "降雨機率 " + w.popMax + "%" })));
-    chart = buildChart(w, nowMin, isToday, sk.phase);
-    if (chart) inn.appendChild(chart);
+    out.chart = buildChart(w, nowMin, o.live, sk.phase);
+    if (out.chart) inn.appendChild(out.chart);
     var ul = h("ul", { class: "al" });
     if (w.stable || !w.alerts || !w.alerts.length) {
       ul.appendChild(h("li", null, ico("check"), h("span", { class: "txt", text: "天氣穩定，不需要特別準備。" })));
@@ -643,7 +656,66 @@ a:focus-visible, button:focus-visible, input:focus-visible, summary:focus-visibl
       });
     }
     inn.appendChild(ul);
-    return { el: hero, chart: chart };
+    return out;
+  }
+
+  function buildHero(data, tp, isToday) {
+    var w = data && data.weather, nowMin = isToday ? tp.min : 12 * 60;
+    var nm = data && typeof data.name === "string" ? data.name.trim().slice(0, 12) : "";
+    var dateStr = data ? data.date : tp.date;
+    var pages = [buildPanel(w, { kind: "today", data: data, nowMin: nowMin, live: isToday, dateStr: dateStr, title: greeting(tp.hour) + (nm ? "，" + nm : "") })];
+    var wn = data && isToday ? data.weatherNext : null;          // 快取是昨天的資料時，不顯示「明天」
+    if (wn && wn.tmax != null && wn.tmin != null) {
+      var nd = typeof wn.date === "string" && /^\d{4}-\d{2}-\d{2}$/.test(wn.date) ? wn.date : addDemoDays(dateStr, 1);
+      var np = buildPanel(wn, { kind: "next", data: data, nowMin: 12 * 60, live: false, dateStr: nd, title: "明天" });
+      if (np.chart) np.chart.classList.add("again");             // 沒在畫面上的那一頁不播繪製動畫
+      pages.push(np);
+    }
+    var two = pages.length > 1, idx = two ? Math.min(state.page || 0, pages.length - 1) : 0;
+
+    var dEl = h("span", { class: "d", text: dateLabel(pages[idx].dateStr) });
+    var top = h("div", { class: "top" }, dEl,
+      h("div", { class: "btns" },
+        state.demo ? null : h("button", { class: "gbtn", type: "button", "aria-label": "重新整理", disabled: state.busy, onclick: function () { refresh(true); } }, ico("refresh")),
+        h("button", { class: "gbtn", type: "button", "aria-label": "設定", onclick: openSettings }, ico("sliders"))));
+    var pager = h("div", { class: "pager", role: "group", "aria-roledescription": "輪播", "aria-label": "天氣：今天與明天", tabindex: two ? "0" : null }, pages.map(function (x) { return x.el; }));
+    var hero = h("header", { class: "hero" + (two ? " two" : "") }, h("div", { class: "hero-bar" }, h("div", { class: "hero-in" }, top)), pager);
+
+    var dotEls = [];
+    function setPage(i) {
+      state.page = i;
+      dEl.textContent = dateLabel(pages[i].dateStr);
+      dotEls.forEach(function (b, k) { if (k === i) b.setAttribute("aria-current", "true"); else b.removeAttribute("aria-current"); });
+      applySky(pages[i].sk);
+    }
+    function goPage(i) {
+      var reduce = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches, left = i * pager.clientWidth;
+      if (pager.scrollTo) pager.scrollTo({ left: left, behavior: reduce ? "auto" : "smooth" }); else pager.scrollLeft = left;
+    }
+    if (two) {
+      hero.appendChild(h("div", { class: "dots" }, pages.map(function (x, i) {
+        var b = h("button", { class: "dot", type: "button", "aria-label": i ? "看明天的天氣" : "看今天的天氣", onclick: function () { goPage(i); } });
+        dotEls.push(b); return b;
+      })));
+    }
+    setPage(idx);
+    return {
+      el: hero,
+      charts: pages.map(function (x) { return x.chart; }).filter(Boolean),
+      init: function () {                                          // 放進頁面之後：回到上次看的那一頁，並開始追蹤滑動
+        if (!two) return;
+        pager.scrollLeft = idx * pager.clientWidth;
+        var tick = false;
+        pager.addEventListener("scroll", function () {
+          if (tick) return; tick = true;
+          requestAnimationFrame(function () {
+            tick = false;
+            var i = Math.round(pager.scrollLeft / Math.max(1, pager.clientWidth));
+            if (i >= 0 && i < pages.length && i !== state.page) setPage(i);
+          });
+        }, { passive: true });
+      }
+    };
   }
 
   // ---------- 畫面：內容 ----------
@@ -787,12 +859,21 @@ a:focus-visible, button:focus-visible, input:focus-visible, summary:focus-visibl
       try { var s = mk(); if (s) main.appendChild(s); } catch (e) { /* 單一區塊資料異常時，其餘區塊照常顯示 */ }
     });
     main.appendChild(h("p", { class: "foot", text: state.busy ? "更新中…" : state.demo ? "示範資料" : state.at ? "更新於 " + hhmm(state.at) : "" }));
-    if (hero.chart) { hero.chart.__draw(); layoutChart = hero.chart.__draw; } else layoutChart = null;
+    hero.charts.forEach(function (c) { c.__draw(); });
+    hero.init();
     state.animated = true;
     window.scrollTo(0, y);
   }
-  var layoutChart = null, raf = 0;
-  window.addEventListener("resize", function () { if (raf) return; raf = requestAnimationFrame(function () { raf = 0; var el = document.querySelector(".chart"); if (layoutChart && el && el.clientWidth !== el.__w) layoutChart(); }); });
+  var raf = 0;
+  window.addEventListener("resize", function () {
+    if (raf) return;
+    raf = requestAnimationFrame(function () {
+      raf = 0;
+      var pg = document.querySelector(".pager");
+      if (pg && state.page && Math.abs(pg.scrollLeft - state.page * pg.clientWidth) > 2) pg.scrollLeft = state.page * pg.clientWidth;   // 轉向後仍停在原本那一頁
+      Array.prototype.forEach.call(document.querySelectorAll(".chart"), function (el) { if (el.__draw && el.clientWidth !== el.__w) el.__draw(); });
+    });
+  });
 
   // ---------- 彈出面板 ----------
   function closeSheet(immediate) {
@@ -990,12 +1071,15 @@ a:focus-visible, button:focus-visible, input:focus-visible, summary:focus-visibl
     var hours = [], i;
     for (i = 0; i < 24; i++) hours.push({ h: i, t: Math.round((20.5 + 5.5 * Math.sin((i - 9) / 24 * 2 * Math.PI)) * 10) / 10, p: (kind === "rain" || kind === "storm") ? (i >= 13 && i <= 18 ? 85 - Math.abs(i - 15) * 10 : 25) : (i >= 15 && i <= 17 ? 55 : 8), c: code });
     var ev = function (time, title, loc, s, e, tight, gap) { return { time: time, title: title, location: loc || "", allDay: false, s: s, e: e, tight: !!tight, gap: tight ? gap : null }; };
-    var wet = kind === "rain" || kind === "storm";
+    var wet = kind === "rain" || kind === "storm", nwet = !wet, hn = [];
+    for (i = 0; i < 24; i++) hn.push({ h: i, t: Math.round((19.5 + 3.5 * Math.sin((i - 9) / 24 * 2 * Math.PI)) * 10) / 10, p: nwet ? (i >= 9 && i <= 11 ? 70 : 15) : 6, c: nwet ? 61 : 1 });
     return {
-      ok: true, version: 2, date: tp.date, weekday: weekdayOf(tp.date), errors: [],
+      ok: true, version: 2, name: "堉州", date: tp.date, weekday: weekdayOf(tp.date), errors: [],
       weather: { icon: "⛅", desc: { clear: "晴朗", partly: "局部多雲", cloud: "陰天", rain: "中雨", night: "晴朗", storm: "雷雨", fog: "起霧", snow: "中雪" }[kind] || "陰天", code: code, tmin: 18, tmax: 27, popMax: wet ? 85 : 55, stable: !wet && kind === "clear", place: "新竹市北區",
         alerts: kind === "clear" ? [] : [{ kind: "layers", text: "溫差 9°C，洋蔥式穿搭，方便增減" }, { kind: "rain", text: "14:00–17:00（" + (wet ? 85 : 55) + "%）降雨機率偏高，外出／騎車帶雨具" }, { kind: "wind", text: "陣風 15:00–17:00 最高 46 km/h（6 級），騎車留意側風" }],
         rain: [{ s: 14, e: 17, p: wet ? 85 : 55 }], wind: [{ s: 15, e: 17, v: 46, lv: 6 }], hours: hours, sun: { rise: "06:08", set: "17:04" } },
+      weatherNext: { date: addDemoDays(tp.date, 1), icon: "🌦️", desc: nwet ? "小雨" : "晴朗", code: nwet ? 61 : 1, tmin: 17, tmax: 23, popMax: nwet ? 70 : 6, stable: !nwet, place: "新竹市北區",
+        alerts: nwet ? [{ kind: "rain", text: "09:00–12:00（70%）降雨機率偏高，外出／騎車帶雨具" }] : [], rain: nwet ? [{ s: 9, e: 12, p: 70 }] : [], wind: [], hours: hn, sun: { rise: "06:09", set: "17:03" } },
       events: [
         { time: "全天", title: "小明生日", location: "", allDay: true, s: null, e: null, tight: false, gap: null },
         ev("09:30", "設計評審", "新竹科學園區", 570, 630),
