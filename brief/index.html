@@ -817,7 +817,7 @@ a:focus-visible, button:focus-visible, input:focus-visible, summary:focus-visibl
     else { td.items.splice(at, 0, todoText(raw)); if (full) { td.items.pop(); td.more++; } }
     td.total++;
   }
-  function todoApply(td) { if (td && state.data) { state.data.todo = td; saveCache(); } }
+  function todoApply(td) { if (td && state.data) { if (!td.src && state.data.todo && state.data.todo.src) td.src = state.data.todo.src; state.data.todo = td; saveCache(); } }   // 舊版後端沒回清單位址時，沿用已知的
   function todoErr(e) {
     var c = e && e.code;
     if (c === "unauthorized") return "金鑰不正確，沒有同步";
@@ -835,8 +835,91 @@ a:focus-visible, button:focus-visible, input:focus-visible, summary:focus-visibl
       throw e;
     });
   }
-  // 送出一個動作。只有最後一個動作回來時才用後端清單覆蓋畫面，避免連續打勾時清單跳回去
-  // 後端寫不進 ntfy（Apps Script 的共用 IP 常把免費額度用完）時，後端會把算好的新內容交回來，改由這支手機直接寫進同一個主題（clock 編輯頁本來就是這樣寫的）
+  // ---- 手機直接讀寫共用清單：和 clock 編輯頁同一條路（讀最新一則、改完整份、再貼回去），不經過 Apps Script ----
+  // Apps Script 連 ntfy 常卡一兩分鐘、或被限流（它的 IP 是大家共用的）；手機自己連線通常 1～2 秒。
+  // 整理文字的規則必須和後端 Code.gs 的 todoRemove_ / todoInsert_ 完全一致。
+  var NOTE_MAX = 1000, KEY_LEN = 40, CLEAR_TOKEN = "CLEAR_NOTE";
+  function nStrip(ln) { var t = String(ln).trim(); return t.replace(/^(?:[-*•·]|\d+[.)])\s+/, "").trim() || t; }
+  function nRefs(note) { var lines = String(note || "").split(/\r?\n/), refs = []; lines.forEach(function (ln, k) { if (ln.trim()) refs.push(k); }); return { lines: lines, refs: refs }; }
+  function nRemove(note, i, t) {
+    var r = nRefs(note), n = parseInt(i, 10), want = String(t || "").trim().slice(0, KEY_LEN), at = -1;
+    if (isNaN(n) || !want) return null;
+    function key(k) { return nStrip(r.lines[r.refs[k]]).slice(0, KEY_LEN); }
+    if (n >= 0 && n < r.refs.length && key(n) === want) at = n;
+    else for (var k = 0; k < r.refs.length; k++) { if (key(k) === want && (at < 0 || Math.abs(k - n) < Math.abs(at - n))) at = k; }
+    if (at < 0) return null;
+    var raw = r.lines[r.refs[at]]; r.lines.splice(r.refs[at], 1);
+    return { note: r.lines.join("\n").replace(/^\s+|\s+$/g, ""), line: raw.trim(), i: at };
+  }
+  function nInsert(note, text, i) {
+    var line = String(text || "").replace(/[\r\n]+/g, " ").trim();
+    if (!line) return null;
+    var r = nRefs(note), n = parseInt(i, 10), at = (!isNaN(n) && n >= 0 && n < r.refs.length) ? r.refs[n] : r.lines.length;
+    r.lines.splice(at, 0, line);
+    var out = r.lines.join("\n").replace(/^\s+|\s+$/g, "");
+    return out.length > NOTE_MAX ? { tooLong: true } : { note: out };
+  }
+  function nView(note, src) {   // 與後端 buildTodo 相同
+    var items = [];
+    String(note || "").split(/\r?\n/).forEach(function (ln) { ln = ln.trim(); if (ln) items.push(nStrip(ln)); });
+    return { items: items.slice(0, TODO_SHOW).map(function (t) { return t.length <= 60 ? t : t.slice(0, 59).replace(/\s+$/, "") + "…"; }),
+             more: Math.max(0, items.length - TODO_SHOW), total: items.length, stale: false, src: src };
+  }
+  function ntfyLatest(src) {   // 讀共用清單最新一則（與後端 syncTodo 相同）；伺服器沒有訊息時不猜，交給後端
+    return withTimeout(12000, function (ok, bad) {
+      fetch(src + "/json?poll=1&since=all", { credentials: "omit", cache: "no-store" }).then(function (r) {
+        if (!r.ok) throw new Error("http " + r.status);
+        return r.text();
+      }).then(function (text) {
+        var latest = null;
+        String(text).split("\n").forEach(function (line) {
+          line = line.trim(); if (!line) return;
+          var o; try { o = JSON.parse(line); } catch (e) { return; }
+          if (o && o.event === "message" && typeof o.message === "string" && (latest === null || (o.time || 0) >= (latest.time || 0))) latest = o;
+        });
+        if (!latest) throw new Error("nomsg");
+        var m = latest.message.trim(); ok(m === CLEAR_TOKEN ? "" : m);
+      }).catch(bad);
+    });
+  }
+  function ntfyPost(src, note) {   // 整份貼回去；清空要送清除記號（與 clock 編輯頁一致）
+    return withTimeout(15000, function (ok, bad) {
+      fetch(src, { method: "POST", body: note ? note : CLEAR_TOKEN, headers: { "Content-Type": "text/plain; charset=utf-8" }, credentials: "omit" }).then(function (r) {
+        if (!r.ok) { var e = new Error("http " + r.status); e.refused = true; throw e; }
+        ok();
+      }).catch(bad);
+    });
+  }
+  function todoClient(params) {
+    var td = state.data && state.data.todo, src = td && td.src;
+    if (!src) return Promise.reject(new Error("nosrc"));
+    var kind = params.action === "todoDone" ? "done" : "add";
+    return ntfyLatest(src).then(function (note) {
+      var r, removed = null, e;
+      if (kind === "done") {
+        r = nRemove(note, params.i, params.t);
+        if (!r) { e = new Error("bad_index"); e.code = "bad_index"; e.data = { todo: nView(note, src) }; throw e; }   // 畫面過期：不刪別的，回最新清單
+        removed = { i: r.i, line: r.line };
+      } else {
+        if (!String(params.text || "").replace(/\s+/g, "")) { e = new Error("bad_text"); e.code = "bad_text"; throw e; }
+        r = nInsert(note, params.text, params.i);
+        if (!r || r.tooLong) { e = new Error("too_long"); e.code = "too_long"; throw e; }
+      }
+      return ntfyPost(src, r.note).catch(function (err) {
+        if (err && err.refused) throw err;   // 伺服器明確拒絕：確定沒寫進去
+        // 不確定有沒有寫進去（逾時、斷線）：再讀一次，內容一樣就算成功；不一樣才換後端做，避免新增變兩筆
+        return ntfyLatest(src).then(function (cur) { if (cur !== r.note) throw err; });
+      }).then(function () { var out = { ok: true, todo: nView(r.note, src), direct: true }; if (removed) out.removed = removed; return out; });
+    });
+  }
+  // 手機自己讀寫失敗（讀不到、被限流、逾時、舊的快取沒有清單位址）→ 改走 Apps Script；內容本身的結果（畫面過期、太長）不用再問後端
+  function todoRun(params) {
+    return todoClient(params).catch(function (e) {
+      if (e && /^(bad_index|bad_text|too_long)$/.test(e.code || "")) throw e;
+      return todoCall(params, 3);
+    });
+  }
+  // 後端寫不進 ntfy 時，後端會把算好的新內容交回來，一樣由這支手機直接貼進同一個主題
   function todoDirect(d) {
     return withTimeout(20000, function (ok, bad) {
       fetch(d.url, { method: "POST", body: d.body, headers: { "Content-Type": "text/plain; charset=utf-8" }, credentials: "omit" }).then(function (r) {
@@ -845,9 +928,10 @@ a:focus-visible, button:focus-visible, input:focus-visible, summary:focus-visibl
       }).catch(bad);
     });
   }
+  // 送出一個動作。只有最後一個動作回來時才用清單覆蓋畫面，避免連續打勾時清單跳回去
   function todoSend(params, onOk, onFail) {
     todoPending++; params.rid = newId();
-    var p = todoQ.then(function () { return todoCall(params, 3); }).catch(function (e) {
+    var p = todoQ.then(function () { return todoRun(params); }).catch(function (e) {
       if (e && e.code === "sync_failed" && e.data && e.data.direct && e.data.direct.url) return todoDirect(e.data.direct).catch(function () { throw e; });   // 備援也失敗：照原本的「同步失敗」說明
       throw e;
     });
