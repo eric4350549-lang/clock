@@ -507,16 +507,16 @@ a:focus-visible, button:focus-visible, input:focus-visible, summary:focus-visibl
       fn(function (v) { if (!done) { done = true; clearTimeout(t); resolve(v); } }, function (e) { if (!done) { done = true; clearTimeout(t); reject(e); } });
     });
   }
-  function viaFetch(url) {
-    return withTimeout(25000, function (ok, bad) {
+  function viaFetch(url, ms) {
+    return withTimeout(ms || 25000, function (ok, bad) {
       fetch(url, { credentials: "omit", redirect: "follow" }).then(function (r) {
         if (!r.ok) throw new Error("http " + r.status);
         return r.json();
       }).then(ok, bad);
     });
   }
-  function viaJsonp(url) {
-    return withTimeout(25000, function (ok, bad) {
+  function viaJsonp(url, ms) {
+    return withTimeout(ms || 25000, function (ok, bad) {
       var name = "__brief_" + Math.random().toString(36).slice(2), s = document.createElement("script");
       function cleanup() { try { delete window[name]; } catch (e) { window[name] = undefined; } if (s.parentNode) s.parentNode.removeChild(s); }
       window[name] = function (d) { cleanup(); ok(d); };
@@ -527,10 +527,14 @@ a:focus-visible, button:focus-visible, input:focus-visible, summary:focus-visibl
     });
   }
   // 讀取與寫入共用：params 會一起帶在網址上（金鑰 k 一律附上）
-  function call(cfg, params) {
+  // opts.ms：等多久（預設 25 秒）；opts.slow：動作可能做很久（待辦要連 ntfy，偶爾會卡一分鐘），逾時時不要再用 JSONP 重送一次
+  function call(cfg, params, opts) {
     var q = Object.keys(params || {}).map(function (k) { return encodeURIComponent(k) + "=" + encodeURIComponent(params[k]); }).join("&");
-    var url = cfg.api + (cfg.api.indexOf("?") < 0 ? "?" : "&") + "k=" + encodeURIComponent(cfg.k) + (q ? "&" + q : "");
-    return viaFetch(url).catch(function () { return viaJsonp(url); }).then(function (d) {
+    var url = cfg.api + (cfg.api.indexOf("?") < 0 ? "?" : "&") + "k=" + encodeURIComponent(cfg.k) + (q ? "&" + q : ""), ms = opts && opts.ms;
+    return viaFetch(url, ms).catch(function (err) {
+      if (opts && opts.slow && err && err.message === "timeout") throw err;
+      return viaJsonp(url, ms);
+    }).then(function (d) {
       if (!d || typeof d !== "object") throw new Error("bad");
       if (d.ok === false) { var e = new Error(d.error || "error"); e.code = d.error === "unauthorized" ? "unauthorized" : (d.error || "bad"); e.data = d; throw e; }
       return d;
@@ -821,12 +825,20 @@ a:focus-visible, button:focus-visible, input:focus-visible, summary:focus-visibl
     if (c === "sync_failed") return "同步失敗，已還原。稍後再試";
     if (c === "bad_action" || c === "no_todo") return "後端還不支援待辦同步，請先更新 Apps Script";
     if (c === "too_long") return "待辦太長，沒有加入";
+    if (e && e.message === "timeout") return "回應太慢，已還原。稍後會自動再確認一次";
     return "沒有連上，已還原。請確認網路後再試";
+  }
+  // 後端偶爾忙（要等前一個動作）：同一個動作（同一個編號）等一下再送，最多 3 次；編號讓重送不會做兩次
+  function todoCall(params, tries) {
+    return call(state.cfg, params, { ms: 100000, slow: true }).catch(function (e) {
+      if (e && e.code === "busy" && tries > 1) return new Promise(function (res) { setTimeout(res, 2500); }).then(function () { return todoCall(params, tries - 1); });
+      throw e;
+    });
   }
   // 送出一個動作。只有最後一個動作回來時才用後端清單覆蓋畫面，避免連續打勾時清單跳回去
   function todoSend(params, onOk, onFail) {
-    todoPending++;
-    var p = todoQ.then(function () { return call(state.cfg, params); });
+    todoPending++; params.rid = newId();
+    var p = todoQ.then(function () { return todoCall(params, 3); });
     todoQ = p.catch(function () { /* 失敗不擋後面的動作 */ });
     p.then(function (r) {
       todoPending--;
@@ -836,6 +848,8 @@ a:focus-visible, button:focus-visible, input:focus-visible, summary:focus-visibl
       todoPending--;
       if (e && e.code === "bad_index" && e.data && e.data.todo) { todoApply(e.data.todo); render(); toast("這項已在別處處理，清單已更新"); return; }
       onFail(e);
+      // 不確定後端有沒有做完（逾時、斷線、同步失敗…）：過幾秒向後端重新確認，畫面以後端為準
+      if (!(e && /^(unauthorized|bad_action|no_todo|too_long|bad_text)$/.test(e.code || ""))) setTimeout(function () { if (!todoPending && state.cfg && !state.demo) refresh(true); }, 6000);
     });
   }
   function todoTick(text) {
