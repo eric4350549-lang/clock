@@ -836,9 +836,21 @@ a:focus-visible, button:focus-visible, input:focus-visible, summary:focus-visibl
     });
   }
   // 送出一個動作。只有最後一個動作回來時才用後端清單覆蓋畫面，避免連續打勾時清單跳回去
+  // 後端寫不進 ntfy（Apps Script 的共用 IP 常把免費額度用完）時，後端會把算好的新內容交回來，改由這支手機直接寫進同一個主題（clock 編輯頁本來就是這樣寫的）
+  function todoDirect(d) {
+    return withTimeout(20000, function (ok, bad) {
+      fetch(d.url, { method: "POST", body: d.body, headers: { "Content-Type": "text/plain; charset=utf-8" }, credentials: "omit" }).then(function (r) {
+        if (!r.ok) throw new Error("http " + r.status);
+        ok({ ok: true, todo: d.todo, removed: d.removed, direct: true });
+      }).catch(bad);
+    });
+  }
   function todoSend(params, onOk, onFail) {
     todoPending++; params.rid = newId();
-    var p = todoQ.then(function () { return todoCall(params, 3); });
+    var p = todoQ.then(function () { return todoCall(params, 3); }).catch(function (e) {
+      if (e && e.code === "sync_failed" && e.data && e.data.direct && e.data.direct.url) return todoDirect(e.data.direct).catch(function () { throw e; });   // 備援也失敗：照原本的「同步失敗」說明
+      throw e;
+    });
     todoQ = p.catch(function () { /* 失敗不擋後面的動作 */ });
     p.then(function (r) {
       todoPending--;
